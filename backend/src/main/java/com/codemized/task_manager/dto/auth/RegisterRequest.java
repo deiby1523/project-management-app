@@ -1,14 +1,12 @@
-package com.codemized.task_manager.dto.user;
+package com.codemized.task_manager.dto.auth;
 
 import lombok.Data;
 
 @Data
-public class CreateUserRequest {
+public class RegisterRequest {
 
     private String name;
-
     private String email;
-
     private String password;
 
 }
