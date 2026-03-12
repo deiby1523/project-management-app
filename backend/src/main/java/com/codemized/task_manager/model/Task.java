@@ -40,6 +40,6 @@ public class Task {
     @JoinColumn(name = "assigned_user_id")
     private User assignedUser;
 
-//    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<Comment> comments;
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments;
 }
