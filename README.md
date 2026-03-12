@@ -1,2 +1,24 @@
-# project-management-app
-Full-stack project management application built with Spring Boot and Next.js. It supports user authentication, project creation, task management, and collaborative comments.
+# Project Management App
+
+Full-stack project management system built with Spring Boot and Next.js.
+
+## Tech Stack
+
+Backend
+- Spring Boot
+- Spring Security
+- JPA / Hibernate
+
+Frontend
+- Next.js
+- React
+
+Database
+- MySQL
+
+## Run (development)
+
+Backend
+
+cd backend
+./mvnw spring-boot:run
