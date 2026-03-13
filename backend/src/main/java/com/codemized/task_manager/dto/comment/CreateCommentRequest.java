@@ -15,7 +15,7 @@ public class CreateCommentRequest {
     @NotNull
     private Long taskId;
 
-    @NotNull
+    // optional: if null, the authenticated user (actor) will be used
     private Long userId;
 
 }

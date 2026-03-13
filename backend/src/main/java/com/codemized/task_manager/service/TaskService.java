@@ -5,6 +5,8 @@ import com.codemized.task_manager.dto.task.TaskResponse;
 import com.codemized.task_manager.model.Project;
 import com.codemized.task_manager.model.Task;
 import com.codemized.task_manager.model.User;
+import com.codemized.task_manager.model.enums.TaskStatus;
+import com.codemized.task_manager.repository.ProjectMemberRepository;
 import com.codemized.task_manager.repository.ProjectRepository;
 import com.codemized.task_manager.repository.TaskRepository;
 import com.codemized.task_manager.repository.UserRepository;
@@ -20,24 +22,37 @@ public class TaskService {
 
     private final TaskRepository taskRepository;
     private final ProjectRepository projectRepository;
+    private final ProjectMemberRepository projectMemberRepository;
     private final UserRepository userRepository;
+    private final CurrentUserService currentUserService;
 
     public TaskResponse createTask(CreateTaskRequest request) {
+        User actor = currentUserService.getCurrentUser();
 
         Project project = projectRepository.findById(request.getProjectId())
                 .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        // Verify actor is a member of the project
+        projectMemberRepository
+                .findByProjectAndUser(project, actor)
+                .orElseThrow(() -> new RuntimeException("Access denied"));
 
         User assignedUser = null;
 
         if (request.getAssignedUserId() != null) {
             assignedUser = userRepository.findById(request.getAssignedUserId())
                     .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // verify assigned user is a member of the project
+            projectMemberRepository
+                    .findByProjectAndUser(project, assignedUser)
+                    .orElseThrow(() -> new RuntimeException("Assigned user is not a member of this project"));
         }
 
         Task task = Task.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
-                .status("todo")
+                .status(TaskStatus.TODO)
                 .project(project)
                 .assignedUser(assignedUser)
                 .build();
@@ -49,6 +64,16 @@ public class TaskService {
 
     public List<TaskResponse> getTasksByProject(Long projectId) {
 
+        User actor = currentUserService.getCurrentUser();
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        // validate permissions before fetching tasks
+        projectMemberRepository
+                .findByProjectAndUser(project, actor)
+                .orElseThrow(() -> new RuntimeException("Access denied"));
+
         List<Task> tasks = taskRepository.findByProjectId(projectId);
 
         return tasks.stream()
@@ -58,11 +83,24 @@ public class TaskService {
 
     public TaskResponse assignTask(Long taskId, Long userId) {
 
+        User actor = currentUserService.getCurrentUser();
+
+
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // verify actor is a member of the project (any member can assign)
+        projectMemberRepository
+                .findByProjectAndUser(task.getProject(), actor)
+                .orElseThrow(() -> new RuntimeException("Access denied"));
+
+        // verify assigned user is a member of the project
+        projectMemberRepository
+                .findByProjectAndUser(task.getProject(), user)
+                .orElseThrow(() -> new RuntimeException("User is not a member of this project"));
 
         task.setAssignedUser(user);
 

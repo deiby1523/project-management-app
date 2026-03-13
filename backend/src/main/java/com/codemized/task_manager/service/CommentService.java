@@ -9,8 +9,6 @@ import com.codemized.task_manager.repository.CommentRepository;
 import com.codemized.task_manager.repository.TaskRepository;
 import com.codemized.task_manager.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,7 +22,7 @@ public class CommentService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
 
-    public CommentResponse createComment(CreateCommentRequest request) {
+    public CommentResponse createComment(CreateCommentRequest request, User actor) {
 
         Task task = taskRepository.findById(request.getTaskId())
                 .orElseThrow(() -> new RuntimeException("Task not found"));
@@ -35,12 +33,10 @@ public class CommentService {
             user = userRepository.findById(request.getUserId())
                     .orElseThrow(() -> new RuntimeException("User not found"));
         } else {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            assert authentication != null;
-            String email = authentication.getName();
-
-            user = userRepository.findByEmail(email)
-                    .orElseThrow();
+            if (actor == null) {
+                throw new RuntimeException("Unauthenticated");
+            }
+            user = actor;
         }
 
         Comment comment = Comment.builder()

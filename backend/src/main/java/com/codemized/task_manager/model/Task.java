@@ -1,5 +1,6 @@
 package com.codemized.task_manager.model;
 
+import com.codemized.task_manager.model.enums.TaskStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -29,7 +30,8 @@ public class Task {
     private String description;
 
     @Column(nullable = false)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private TaskStatus status;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

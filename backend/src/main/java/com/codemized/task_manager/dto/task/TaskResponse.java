@@ -1,5 +1,6 @@
 package com.codemized.task_manager.dto.task;
 
+import com.codemized.task_manager.model.enums.TaskStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -13,7 +14,7 @@ public class TaskResponse {
 
     private String description;
 
-    private String status;
+    private TaskStatus status;
 
     private Long projectId;
 

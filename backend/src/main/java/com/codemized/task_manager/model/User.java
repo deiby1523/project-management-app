@@ -11,6 +11,7 @@ import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -41,4 +42,7 @@ public class User {
 
     @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL)
     private List<Project> projects;
+
+    @OneToMany(mappedBy = "user")
+    private List<ProjectMember> projectMemberships;
 }

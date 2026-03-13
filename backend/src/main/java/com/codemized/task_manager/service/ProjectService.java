@@ -3,12 +3,13 @@ package com.codemized.task_manager.service;
 import com.codemized.task_manager.dto.project.CreateProjectRequest;
 import com.codemized.task_manager.dto.project.ProjectResponse;
 import com.codemized.task_manager.model.Project;
+import com.codemized.task_manager.model.ProjectMember;
 import com.codemized.task_manager.model.User;
+import com.codemized.task_manager.model.enums.ProjectRole;
+import com.codemized.task_manager.repository.ProjectMemberRepository;
 import com.codemized.task_manager.repository.ProjectRepository;
 import com.codemized.task_manager.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,30 +20,49 @@ import java.util.stream.Collectors;
 public class ProjectService {
 
     private final ProjectRepository projectRepository;
-    private final UserRepository userRepository;
+    private final ProjectMemberRepository projectMemberRepository;
+    private final CurrentUserService currentUserService;
 
-    public Project createProject(CreateProjectRequest request) {
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        assert authentication != null;
-        String email = authentication.getName();
+    public ProjectResponse createProject(CreateProjectRequest request) {
+        User creator = currentUserService.getCurrentUser();
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow();
 
         Project project = new Project();
         project.setName(request.getName());
         project.setDescription(request.getDescription());
-        project.setCreator(user);
+        project.setCreator(creator);
 
-        return projectRepository.save(project);
+        Project savedProject = projectRepository.save(project);
+
+        ProjectMember owner = new ProjectMember();
+        owner.setProject(savedProject);
+        owner.setUser(creator);
+        owner.setRole(ProjectRole.OWNER);
+
+        projectMemberRepository.save(owner);
+
+        return mapToResponse(savedProject);
     }
 
-    public List<ProjectResponse> getProjectsByUser(Long userId) {
+    // returns projects where the given user is the creator
+    public List<ProjectResponse> getProjectsByUser(User user) {
 
-        List<Project> projects = projectRepository.findByCreatorId(userId);
+        List<Project> projects = projectRepository.findByCreatorId(user.getId());
 
         return projects.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    // returns projects where the user is a collaborator / member
+    public List<ProjectResponse> getCollaborativeProjects(User user) {
+
+        List<ProjectMember> memberships = projectMemberRepository.findByUser(user);
+
+        return memberships.stream()
+                .map(ProjectMember::getProject)
+                .distinct()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }

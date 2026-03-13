@@ -2,9 +2,12 @@ package com.codemized.task_manager.controller;
 
 import com.codemized.task_manager.dto.task.CreateTaskRequest;
 import com.codemized.task_manager.dto.task.TaskResponse;
+import com.codemized.task_manager.model.User;
 import com.codemized.task_manager.service.TaskService;
+import com.codemized.task_manager.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -17,6 +20,7 @@ import java.util.List;
 public class TaskController {
 
     private final TaskService taskService;
+    private final UserService userService;
 
     @PostMapping
     public ResponseEntity<TaskResponse> createTask(@Valid @RequestBody CreateTaskRequest request) {
