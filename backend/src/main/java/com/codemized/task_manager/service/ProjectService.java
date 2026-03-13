@@ -7,6 +7,8 @@ import com.codemized.task_manager.model.User;
 import com.codemized.task_manager.repository.ProjectRepository;
 import com.codemized.task_manager.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,20 +21,21 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
 
-    public ProjectResponse createProject(CreateProjectRequest request) {
+    public Project createProject(CreateProjectRequest request) {
 
-        User creator = userRepository.findById(request.getCreatorId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        assert authentication != null;
+        String email = authentication.getName();
 
-        Project project = Project.builder()
-                .name(request.getName())
-                .description(request.getDescription())
-                .creator(creator)
-                .build();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow();
 
-        Project saved = projectRepository.save(project);
+        Project project = new Project();
+        project.setName(request.getName());
+        project.setDescription(request.getDescription());
+        project.setCreator(user);
 
-        return mapToResponse(saved);
+        return projectRepository.save(project);
     }
 
     public List<ProjectResponse> getProjectsByUser(Long userId) {

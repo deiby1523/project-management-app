@@ -1,7 +1,7 @@
 package com.codemized.task_manager.service;
 
-import com.codemized.task_manager.dto.comment.CreateCommentRequest;
 import com.codemized.task_manager.dto.comment.CommentResponse;
+import com.codemized.task_manager.dto.comment.CreateCommentRequest;
 import com.codemized.task_manager.model.Comment;
 import com.codemized.task_manager.model.Task;
 import com.codemized.task_manager.model.User;
@@ -9,6 +9,8 @@ import com.codemized.task_manager.repository.CommentRepository;
 import com.codemized.task_manager.repository.TaskRepository;
 import com.codemized.task_manager.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,8 +29,19 @@ public class CommentService {
         Task task = taskRepository.findById(request.getTaskId())
                 .orElseThrow(() -> new RuntimeException("Task not found"));
 
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user;
+
+        if (request.getUserId() != null) {
+            user = userRepository.findById(request.getUserId())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+        } else {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            assert authentication != null;
+            String email = authentication.getName();
+
+            user = userRepository.findByEmail(email)
+                    .orElseThrow();
+        }
 
         Comment comment = Comment.builder()
                 .content(request.getContent())
