@@ -4,11 +4,9 @@ import com.codemized.task_manager.dto.comment.CommentResponse;
 import com.codemized.task_manager.dto.comment.CreateCommentRequest;
 import com.codemized.task_manager.model.User;
 import com.codemized.task_manager.service.CommentService;
-import com.codemized.task_manager.service.CurrentUserService;
 import com.codemized.task_manager.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -21,12 +19,12 @@ import java.util.List;
 public class CommentController {
 
     private final CommentService commentService;
-    private final CurrentUserService currentUserService;
+    private final UserService userService;
 
 
     @PostMapping
     public ResponseEntity<CommentResponse> createComment(@Valid @RequestBody CreateCommentRequest request) {
-        User user = currentUserService.getCurrentUser();
+        User user = userService.getCurrentUser();
         CommentResponse response = commentService.createComment(request, user);
         return ResponseEntity.ok(response);
     }

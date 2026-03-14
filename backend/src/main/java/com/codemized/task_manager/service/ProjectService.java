@@ -8,7 +8,6 @@ import com.codemized.task_manager.model.User;
 import com.codemized.task_manager.model.enums.ProjectRole;
 import com.codemized.task_manager.repository.ProjectMemberRepository;
 import com.codemized.task_manager.repository.ProjectRepository;
-import com.codemized.task_manager.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,11 +20,11 @@ public class ProjectService {
 
     private final ProjectRepository projectRepository;
     private final ProjectMemberRepository projectMemberRepository;
-    private final CurrentUserService currentUserService;
+    private final UserService userService;
 
 
     public ProjectResponse createProject(CreateProjectRequest request) {
-        User creator = currentUserService.getCurrentUser();
+        User creator = userService.getCurrentUser();
 
 
         Project project = new Project();

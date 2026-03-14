@@ -24,10 +24,10 @@ public class TaskService {
     private final ProjectRepository projectRepository;
     private final ProjectMemberRepository projectMemberRepository;
     private final UserRepository userRepository;
-    private final CurrentUserService currentUserService;
+    private final UserService userService;
 
     public TaskResponse createTask(CreateTaskRequest request) {
-        User actor = currentUserService.getCurrentUser();
+        User actor = userService.getCurrentUser();
 
         Project project = projectRepository.findById(request.getProjectId())
                 .orElseThrow(() -> new RuntimeException("Project not found"));
@@ -64,7 +64,7 @@ public class TaskService {
 
     public List<TaskResponse> getTasksByProject(Long projectId) {
 
-        User actor = currentUserService.getCurrentUser();
+        User actor = userService.getCurrentUser();
 
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
@@ -83,7 +83,7 @@ public class TaskService {
 
     public TaskResponse assignTask(Long taskId, Long userId) {
 
-        User actor = currentUserService.getCurrentUser();
+        User actor = userService.getCurrentUser();
 
 
         Task task = taskRepository.findById(taskId)
