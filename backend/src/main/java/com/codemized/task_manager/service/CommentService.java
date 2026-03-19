@@ -2,6 +2,8 @@ package com.codemized.task_manager.service;
 
 import com.codemized.task_manager.dto.comment.CommentResponse;
 import com.codemized.task_manager.dto.comment.CreateCommentRequest;
+import com.codemized.task_manager.exception.AccessDeniedException;
+import com.codemized.task_manager.exception.ResourceNotFoundException;
 import com.codemized.task_manager.model.Comment;
 import com.codemized.task_manager.model.Task;
 import com.codemized.task_manager.model.User;
@@ -25,16 +27,16 @@ public class CommentService {
     public CommentResponse createComment(CreateCommentRequest request, User actor) {
 
         Task task = taskRepository.findById(request.getTaskId())
-                .orElseThrow(() -> new RuntimeException("Task not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("task","id",request.getTaskId()));
 
         User user;
 
         if (request.getUserId() != null) {
             user = userRepository.findById(request.getUserId())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("user","id",request.getUserId()));
         } else {
             if (actor == null) {
-                throw new RuntimeException("Unauthenticated");
+                throw new AccessDeniedException("Unauthenticated");
             }
             user = actor;
         }

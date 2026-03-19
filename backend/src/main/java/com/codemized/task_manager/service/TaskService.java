@@ -2,6 +2,8 @@ package com.codemized.task_manager.service;
 
 import com.codemized.task_manager.dto.task.CreateTaskRequest;
 import com.codemized.task_manager.dto.task.TaskResponse;
+import com.codemized.task_manager.exception.AccessDeniedException;
+import com.codemized.task_manager.exception.ResourceNotFoundException;
 import com.codemized.task_manager.model.Project;
 import com.codemized.task_manager.model.Task;
 import com.codemized.task_manager.model.User;
@@ -30,18 +32,17 @@ public class TaskService {
         User actor = userService.getCurrentUser();
 
         Project project = projectRepository.findById(request.getProjectId())
-                .orElseThrow(() -> new RuntimeException("Project not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("project","id",request.getProjectId()));
 
         // Verify actor is a member of the project
         projectMemberRepository
                 .findByProjectAndUser(project, actor)
-                .orElseThrow(() -> new RuntimeException("Access denied"));
+                .orElseThrow(() -> new AccessDeniedException("Access denied"));
 
         User assignedUser = null;
 
         if (request.getAssignedUserId() != null) {
-            assignedUser = userRepository.findById(request.getAssignedUserId())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            assignedUser = userService.getUserById(request.getAssignedUserId());
 
             // verify assigned user is a member of the project
             projectMemberRepository
@@ -67,12 +68,12 @@ public class TaskService {
         User actor = userService.getCurrentUser();
 
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new RuntimeException("Project not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("project","id",projectId));
 
         // validate permissions before fetching tasks
         projectMemberRepository
                 .findByProjectAndUser(project, actor)
-                .orElseThrow(() -> new RuntimeException("Access denied"));
+                .orElseThrow(() -> new AccessDeniedException("Access denied"));
 
         List<Task> tasks = taskRepository.findByProjectId(projectId);
 
@@ -87,15 +88,15 @@ public class TaskService {
 
 
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new RuntimeException("Task not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("task","id",taskId));
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("user","id",userId));
 
         // verify actor is a member of the project (any member can assign)
         projectMemberRepository
                 .findByProjectAndUser(task.getProject(), actor)
-                .orElseThrow(() -> new RuntimeException("Access denied"));
+                .orElseThrow(() -> new AccessDeniedException("Access denied"));
 
         // verify assigned user is a member of the project
         projectMemberRepository

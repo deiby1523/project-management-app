@@ -1,5 +1,6 @@
 package com.codemized.task_manager.service;
 
+import com.codemized.task_manager.exception.ResourceNotFoundException;
 import com.codemized.task_manager.model.User;
 import com.codemized.task_manager.repository.UserRepository;
 import org.springframework.security.core.Authentication;
@@ -24,15 +25,15 @@ public class UserService {
         String email = authentication.getName();
 
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("user","email",email));
     }
 
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("user","email",email));
     }
 
     public User getUserById(Long id) {
-        return userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("user","id",id));
     }
 }

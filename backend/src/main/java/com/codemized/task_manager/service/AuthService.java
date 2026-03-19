@@ -3,6 +3,7 @@ package com.codemized.task_manager.service;
 import com.codemized.task_manager.dto.auth.AuthResponse;
 import com.codemized.task_manager.dto.auth.LoginRequest;
 import com.codemized.task_manager.dto.auth.RegisterRequest;
+import com.codemized.task_manager.exception.DuplicateResourceException;
 import com.codemized.task_manager.model.User;
 import com.codemized.task_manager.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ public class AuthService {
     public AuthResponse register(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already registered");
+            throw new DuplicateResourceException("Email already registered");
         }
 
         User user = User.builder()

@@ -2,6 +2,9 @@ package com.codemized.task_manager.service;
 
 import com.codemized.task_manager.dto.project.CreateProjectRequest;
 import com.codemized.task_manager.dto.project.ProjectResponse;
+import com.codemized.task_manager.exception.AccessDeniedException;
+import com.codemized.task_manager.exception.DuplicateResourceException;
+import com.codemized.task_manager.exception.ResourceNotFoundException;
 import com.codemized.task_manager.model.Project;
 import com.codemized.task_manager.model.ProjectMember;
 import com.codemized.task_manager.model.User;
@@ -49,15 +52,15 @@ public class ProjectService {
         User actor = userService.getCurrentUser();
 
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new RuntimeException("Project not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("project","id",projectId));
 
         ProjectMember actorMembership = projectMemberRepository
                 .findByProjectAndUser(project, actor)
-                .orElseThrow(() -> new RuntimeException("Access denied"));
+                .orElseThrow(() -> new AccessDeniedException("Access denied"));
 
         // Validar rol
         if (actorMembership.getRole() != ProjectRole.OWNER) {
-            throw new RuntimeException("Insufficient permissions");
+            throw new AccessDeniedException("Insufficient permissions");
         }
 
         User member = userService.getUserById(userId);
@@ -68,7 +71,7 @@ public class ProjectService {
                 .isPresent();
 
         if (alreadyMember) {
-            throw new RuntimeException("User is already a member of this project");
+            throw new DuplicateResourceException("User is already a member of this project");
         }
 
         ProjectMember projectMember = new ProjectMember();
@@ -84,15 +87,15 @@ public class ProjectService {
         User actor = userService.getCurrentUser();
 
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new RuntimeException("Project not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("project","id",projectId));
 
         ProjectMember actorMembership = projectMemberRepository
                 .findByProjectAndUser(project, actor)
-                .orElseThrow(() -> new RuntimeException("Access denied"));
+                .orElseThrow(() -> new AccessDeniedException("Access denied"));
 
         // Validar permisos
         if (actorMembership.getRole() != ProjectRole.OWNER) {
-            throw new RuntimeException("Insufficient permissions");
+            throw new AccessDeniedException("Insufficient permissions");
         }
 
         User member = userService.getUserById(userId);
@@ -139,7 +142,7 @@ public class ProjectService {
     public ProjectResponse getProjectById(Long id) {
 
         Project project = projectRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Project not found"));
+                .orElseThrow(() -> new  ResourceNotFoundException("project","id",id));
 
         return mapToResponse(project);
     }
