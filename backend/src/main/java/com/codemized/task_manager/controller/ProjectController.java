@@ -46,4 +46,23 @@ public class ProjectController {
         return ResponseEntity.ok(projectService.getProjectById(id));
     }
 
+    // Agregar miembro al proyecto
+    @PostMapping("/{projectId}/members/{userId}")
+    public ResponseEntity<Void> addMemberToProject(
+            @PathVariable Long projectId,
+            @PathVariable Long userId) {
+
+        projectService.addMemberToProject(projectId, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    // Eliminar miembro del proyecto
+    @DeleteMapping("/{projectId}/members/{userId}")
+    public ResponseEntity<Void> removeMemberFromProject(
+            @PathVariable Long projectId,
+            @PathVariable Long userId) {
+
+        projectService.removeMemberOfProject(projectId, userId);
+        return ResponseEntity.noContent().build();
+    }
 }

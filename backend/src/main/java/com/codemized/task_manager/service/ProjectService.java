@@ -44,6 +44,76 @@ public class ProjectService {
         return mapToResponse(savedProject);
     }
 
+    public void addMemberToProject(Long projectId, Long userId) {
+
+        User actor = userService.getCurrentUser();
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        ProjectMember actorMembership = projectMemberRepository
+                .findByProjectAndUser(project, actor)
+                .orElseThrow(() -> new RuntimeException("Access denied"));
+
+        // Validar rol
+        if (actorMembership.getRole() != ProjectRole.OWNER) {
+            throw new RuntimeException("Insufficient permissions");
+        }
+
+        User member = userService.getUserById(userId);
+
+        // Evitar duplicados
+        boolean alreadyMember = projectMemberRepository
+                .findByProjectAndUser(project, member)
+                .isPresent();
+
+        if (alreadyMember) {
+            throw new RuntimeException("User is already a member of this project");
+        }
+
+        ProjectMember projectMember = new ProjectMember();
+        projectMember.setProject(project);
+        projectMember.setUser(member);
+        projectMember.setRole(ProjectRole.MEMBER);
+
+        projectMemberRepository.save(projectMember);
+    }
+
+    public void removeMemberOfProject(Long projectId, Long userId) {
+
+        User actor = userService.getCurrentUser();
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        ProjectMember actorMembership = projectMemberRepository
+                .findByProjectAndUser(project, actor)
+                .orElseThrow(() -> new RuntimeException("Access denied"));
+
+        // Validar permisos
+        if (actorMembership.getRole() != ProjectRole.OWNER) {
+            throw new RuntimeException("Insufficient permissions");
+        }
+
+        User member = userService.getUserById(userId);
+
+        ProjectMember memberMembership = projectMemberRepository
+                .findByProjectAndUser(project, member)
+                .orElseThrow(() -> new RuntimeException("User is not a member of this project"));
+
+        // Evitar eliminar al OWNER
+        if (memberMembership.getRole() == ProjectRole.OWNER) {
+            throw new RuntimeException("Cannot remove the project owner");
+        }
+
+        // (Opcional) Evitar auto-eliminación
+        if (actor.getId().equals(member.getId())) {
+            throw new RuntimeException("Owner cannot remove themselves");
+        }
+
+        projectMemberRepository.delete(memberMembership);
+    }
+
     // returns projects where the given user is the creator
     public List<ProjectResponse> getProjectsByUser(User user) {
 
