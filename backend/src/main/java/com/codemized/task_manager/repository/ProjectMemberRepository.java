@@ -3,6 +3,7 @@ package com.codemized.task_manager.repository;
 import com.codemized.task_manager.model.Project;
 import com.codemized.task_manager.model.ProjectMember;
 import com.codemized.task_manager.model.User;
+import com.codemized.task_manager.model.enums.ProjectRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -15,5 +16,7 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Lo
     List<ProjectMember> findByProject(Project project);
 
     Optional<ProjectMember> findByProjectAndUser(Project project, User user);
+
+    List<ProjectMember> findByUserAndRoleNot(User user, ProjectRole role);
 
 }

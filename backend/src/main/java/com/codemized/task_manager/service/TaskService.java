@@ -3,6 +3,7 @@ package com.codemized.task_manager.service;
 import com.codemized.task_manager.dto.task.CreateTaskRequest;
 import com.codemized.task_manager.dto.task.TaskResponse;
 import com.codemized.task_manager.exception.AccessDeniedException;
+import com.codemized.task_manager.exception.InvalidOperationException;
 import com.codemized.task_manager.exception.ResourceNotFoundException;
 import com.codemized.task_manager.model.Project;
 import com.codemized.task_manager.model.Task;
@@ -11,9 +12,9 @@ import com.codemized.task_manager.model.enums.TaskStatus;
 import com.codemized.task_manager.repository.ProjectMemberRepository;
 import com.codemized.task_manager.repository.ProjectRepository;
 import com.codemized.task_manager.repository.TaskRepository;
-import com.codemized.task_manager.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,29 +26,20 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final ProjectRepository projectRepository;
     private final ProjectMemberRepository projectMemberRepository;
-    private final UserRepository userRepository;
     private final UserService userService;
 
+    @Transactional
     public TaskResponse createTask(CreateTaskRequest request) {
         User actor = userService.getCurrentUser();
 
-        Project project = projectRepository.findById(request.getProjectId())
-                .orElseThrow(() -> new ResourceNotFoundException("project","id",request.getProjectId()));
-
-        // Verify actor is a member of the project
-        projectMemberRepository
-                .findByProjectAndUser(project, actor)
-                .orElseThrow(() -> new AccessDeniedException("Access denied"));
+        Project project = getProjectOrThrow(request.getProjectId());
+        validateMember(project, actor);
 
         User assignedUser = null;
 
         if (request.getAssignedUserId() != null) {
             assignedUser = userService.getUserById(request.getAssignedUserId());
-
-            // verify assigned user is a member of the project
-            projectMemberRepository
-                    .findByProjectAndUser(project, assignedUser)
-                    .orElseThrow(() -> new RuntimeException("Assigned user is not a member of this project"));
+            validateMember(project, assignedUser);
         }
 
         Task task = Task.builder()
@@ -64,44 +56,35 @@ public class TaskService {
     }
 
     public List<TaskResponse> getTasksByProject(Long projectId) {
-
         User actor = userService.getCurrentUser();
 
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ResourceNotFoundException("project","id",projectId));
+        Project project = getProjectOrThrow(projectId);
+        validateMember(project, actor);
 
-        // validate permissions before fetching tasks
-        projectMemberRepository
-                .findByProjectAndUser(project, actor)
-                .orElseThrow(() -> new AccessDeniedException("Access denied"));
-
-        List<Task> tasks = taskRepository.findByProjectId(projectId);
-
-        return tasks.stream()
+        return taskRepository.findByProjectId(projectId).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
-    public TaskResponse assignTask(Long taskId, Long userId) {
+    public TaskResponse getTaskById(Long taskId) {
+        Task task = getTaskOrThrow(taskId);
 
+        validateMember(task.getProject(), userService.getCurrentUser());
+
+        return mapToResponse(task);
+    }
+
+    @Transactional
+    public TaskResponse assignTask(Long taskId, Long userId) {
         User actor = userService.getCurrentUser();
 
+        Task task = getTaskOrThrow(taskId);
+        Project project = task.getProject();
 
-        Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new ResourceNotFoundException("task","id",taskId));
+        validateMember(project, actor);
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("user","id",userId));
-
-        // verify actor is a member of the project (any member can assign)
-        projectMemberRepository
-                .findByProjectAndUser(task.getProject(), actor)
-                .orElseThrow(() -> new AccessDeniedException("Access denied"));
-
-        // verify assigned user is a member of the project
-        projectMemberRepository
-                .findByProjectAndUser(task.getProject(), user)
-                .orElseThrow(() -> new RuntimeException("User is not a member of this project"));
+        User user = userService.getUserById(userId);
+        validateMember(project, user);
 
         task.setAssignedUser(user);
 
@@ -110,13 +93,30 @@ public class TaskService {
         return mapToResponse(updated);
     }
 
+    // =========================
+    // Métodos auxiliares
+    // =========================
+
+    private Project getProjectOrThrow(Long projectId) {
+        return projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("project", "id", projectId));
+    }
+
+    private Task getTaskOrThrow(Long taskId) {
+        return taskRepository.findById(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("task", "id", taskId));
+    }
+
+    private void validateMember(Project project, User user) {
+        projectMemberRepository
+                .findByProjectAndUser(project, user)
+                .orElseThrow(() -> new AccessDeniedException("Access denied"));
+    }
+
     private TaskResponse mapToResponse(Task task) {
-
-        Long assignedUserId = null;
-
-        if (task.getAssignedUser() != null) {
-            assignedUserId = task.getAssignedUser().getId();
-        }
+        Long assignedUserId = task.getAssignedUser() != null
+                ? task.getAssignedUser().getId()
+                : null;
 
         return TaskResponse.builder()
                 .id(task.getId())

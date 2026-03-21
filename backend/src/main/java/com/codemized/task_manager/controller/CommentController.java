@@ -25,7 +25,7 @@ public class CommentController {
     @PostMapping
     public ResponseEntity<CommentResponse> createComment(@Valid @RequestBody CreateCommentRequest request) {
         User user = userService.getCurrentUser();
-        CommentResponse response = commentService.createComment(request, user);
+        CommentResponse response = commentService.createComment(request);
         return ResponseEntity.ok(response);
     }
 

@@ -2,6 +2,7 @@ package com.codemized.task_manager.controller;
 
 import com.codemized.task_manager.dto.project.CreateProjectRequest;
 import com.codemized.task_manager.dto.project.ProjectResponse;
+import com.codemized.task_manager.dto.user.UserResponse;
 import com.codemized.task_manager.model.User;
 import com.codemized.task_manager.service.UserService;
 import com.codemized.task_manager.service.ProjectService;
@@ -55,6 +56,14 @@ public class ProjectController {
         projectService.addMemberToProject(projectId, userId);
         return ResponseEntity.ok().build();
     }
+
+    // Agregar miembro al proyecto
+    @GetMapping("/{projectId}/members")
+    public ResponseEntity<List<UserResponse>> getMembersOfProject(@PathVariable Long projectId) {
+
+        return ResponseEntity.ok(projectService.getProjectMembers(projectId));
+    }
+
 
     // Eliminar miembro del proyecto
     @DeleteMapping("/{projectId}/members/{userId}")

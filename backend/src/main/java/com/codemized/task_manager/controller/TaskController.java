@@ -2,6 +2,7 @@ package com.codemized.task_manager.controller;
 
 import com.codemized.task_manager.dto.task.CreateTaskRequest;
 import com.codemized.task_manager.dto.task.TaskResponse;
+import com.codemized.task_manager.model.Task;
 import com.codemized.task_manager.service.TaskService;
 import com.codemized.task_manager.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -32,10 +33,18 @@ public class TaskController {
         return ResponseEntity.ok(tasks);
     }
 
+    @GetMapping("/{taskId}")
+    public ResponseEntity<TaskResponse> getTaskById(@PathVariable Long taskId) {
+        TaskResponse task = taskService.getTaskById(taskId);
+        return ResponseEntity.ok(task);
+    }
+
     @PostMapping("/{taskId}/assign/{userId}")
     public ResponseEntity<TaskResponse> assignTask(@PathVariable Long taskId, @PathVariable Long userId) {
         TaskResponse response = taskService.assignTask(taskId, userId);
         return ResponseEntity.ok(response);
     }
+
+
 
 }

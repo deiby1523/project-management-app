@@ -5,13 +5,15 @@ import com.codemized.task_manager.dto.comment.CreateCommentRequest;
 import com.codemized.task_manager.exception.AccessDeniedException;
 import com.codemized.task_manager.exception.ResourceNotFoundException;
 import com.codemized.task_manager.model.Comment;
+import com.codemized.task_manager.model.Project;
 import com.codemized.task_manager.model.Task;
 import com.codemized.task_manager.model.User;
 import com.codemized.task_manager.repository.CommentRepository;
+import com.codemized.task_manager.repository.ProjectMemberRepository;
 import com.codemized.task_manager.repository.TaskRepository;
-import com.codemized.task_manager.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,29 +24,23 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final TaskRepository taskRepository;
-    private final UserRepository userRepository;
+    private final ProjectMemberRepository projectMemberRepository;
+    private final UserService userService;
 
-    public CommentResponse createComment(CreateCommentRequest request, User actor) {
+    @Transactional
+    public CommentResponse createComment(CreateCommentRequest request) {
 
-        Task task = taskRepository.findById(request.getTaskId())
-                .orElseThrow(() -> new ResourceNotFoundException("task","id",request.getTaskId()));
+        User actor = userService.getCurrentUser();
 
-        User user;
+        Task task = getTaskOrThrow(request.getTaskId());
+        Project project = task.getProject();
 
-        if (request.getUserId() != null) {
-            user = userRepository.findById(request.getUserId())
-                    .orElseThrow(() -> new ResourceNotFoundException("user","id",request.getUserId()));
-        } else {
-            if (actor == null) {
-                throw new AccessDeniedException("Unauthenticated");
-            }
-            user = actor;
-        }
+        validateMember(project, actor);
 
         Comment comment = Comment.builder()
                 .content(request.getContent())
                 .task(task)
-                .user(user)
+                .user(actor)
                 .build();
 
         Comment saved = commentRepository.save(comment);
@@ -54,15 +50,34 @@ public class CommentService {
 
     public List<CommentResponse> getCommentsByTask(Long taskId) {
 
-        List<Comment> comments = commentRepository.findByTaskId(taskId);
+        User actor = userService.getCurrentUser();
 
-        return comments.stream()
+        Task task = getTaskOrThrow(taskId);
+        Project project = task.getProject();
+
+        validateMember(project, actor);
+
+        return commentRepository.findByTaskId(taskId).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
-    private CommentResponse mapToResponse(Comment comment) {
+    // =========================
+    // Métodos auxiliares
+    // =========================
 
+    private Task getTaskOrThrow(Long taskId) {
+        return taskRepository.findById(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("task", "id", taskId));
+    }
+
+    private void validateMember(Project project, User user) {
+        projectMemberRepository
+                .findByProjectAndUser(project, user)
+                .orElseThrow(() -> new AccessDeniedException("Access denied"));
+    }
+
+    private CommentResponse mapToResponse(Comment comment) {
         return CommentResponse.builder()
                 .id(comment.getId())
                 .content(comment.getContent())
