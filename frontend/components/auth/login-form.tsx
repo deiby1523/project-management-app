@@ -34,56 +34,82 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-semibold tracking-tight">Welcome back</CardTitle>
-        <CardDescription>Enter your credentials to sign in to your account</CardDescription>
-      </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          {error && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-              {error}
-            </div>
-          )}
-          <Field>
-            <FieldLabel htmlFor="email">Email</FieldLabel>
-            <Input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={isLoading}
-            />
-          </Field>
-          <Field>
-            <FieldLabel htmlFor="password">Password</FieldLabel>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={isLoading}
-            />
-          </Field>
-        </CardContent>
-        <CardFooter className="flex flex-col gap-4">
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? <Spinner className="mr-2" /> : null}
-            Sign in
-          </Button>
-          <p className="text-sm text-muted-foreground text-center">
-            {"Don't have an account? "}
-            <Link href="/register" className="text-primary underline-offset-4 hover:underline">
-              Sign up
-            </Link>
+    <div className="flex items-center justify-center gap-6 w-full">
+      
+      {/* Login */}
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-semibold tracking-tight">Welcome back</CardTitle>
+          <CardDescription>Enter your credentials to sign in to your account</CardDescription>
+        </CardHeader>
+  
+        <form onSubmit={handleSubmit}>
+          <CardContent className="space-y-4">
+            {error && (
+              <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                {error}
+              </div>
+            )}
+  
+            <Field>
+              <FieldLabel htmlFor="email">Email</FieldLabel>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={isLoading}
+              />
+            </Field>
+  
+            <Field>
+              <FieldLabel htmlFor="password">Password</FieldLabel>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={isLoading}
+              />
+            </Field>
+          </CardContent>
+  
+          <CardFooter className="flex flex-col gap-4 mt-4">
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? <Spinner className="mr-2" /> : null}
+              Sign in
+            </Button>
+  
+            <p className="text-sm text-muted-foreground text-center">
+              {"Don't have an account? "}
+              <Link href="/register" className="text-primary underline-offset-4 hover:underline">
+                Sign up
+              </Link>
+            </p>
+          </CardFooter>
+        </form>
+      </Card>
+  
+      <Card className="hidden md:block max-w-sm">
+        <CardHeader>
+          <CardTitle className="text-lg">Test Access</CardTitle>
+          <CardDescription>
+          Use the predefined credentials to quickly evaluate the application. All accounts have the same password: deiby123
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="text-sm space-y-2">
+          <p><strong>Email:</strong> deibyprada@gmail.com</p>
+          <p><strong>Password:</strong> deiby123</p>
+          <p className="text-muted-foreground">
+            You can also create a new account if needed.
           </p>
-        </CardFooter>
-      </form>
-    </Card>
+        </CardContent>
+      </Card>
+  
+    </div>
   )
 }

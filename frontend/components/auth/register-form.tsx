@@ -85,7 +85,7 @@ export function RegisterForm() {
             />
           </Field>
         </CardContent>
-        <CardFooter className="flex flex-col gap-4">
+        <CardFooter className="flex flex-col gap-4 mt-4">
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? <Spinner className="mr-2" /> : null}
             Create account
