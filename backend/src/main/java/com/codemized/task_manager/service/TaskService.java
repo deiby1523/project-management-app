@@ -75,6 +75,27 @@ public class TaskService {
     }
 
     @Transactional
+    public TaskResponse updateTaskStatus(Long taskId, TaskStatus newStatus) {
+        User actor = userService.getCurrentUser();
+
+        Task task = getTaskOrThrow(taskId);
+        Project project = task.getProject();
+
+        validateMember(project, actor);
+
+        if (newStatus == null) {
+            throw new InvalidOperationException("Task status cannot be null");
+        }
+
+
+        task.setStatus(newStatus);
+
+        Task updated = taskRepository.save(task);
+
+        return mapToResponse(updated);
+    }
+
+    @Transactional
     public TaskResponse assignTask(Long taskId, Long userId) {
         User actor = userService.getCurrentUser();
 
@@ -91,6 +112,18 @@ public class TaskService {
         Task updated = taskRepository.save(task);
 
         return mapToResponse(updated);
+    }
+
+    @Transactional
+    public void deleteTask(Long taskId) {
+        User actor = userService.getCurrentUser();
+
+        Task task = getTaskOrThrow(taskId);
+        Project project = task.getProject();
+
+        validateMember(project, actor);
+
+        taskRepository.delete(task);
     }
 
     // =========================

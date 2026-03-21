@@ -1,89 +1,126 @@
-"use client"
+"use client";
 
-import { useEffect, useState, useCallback, use } from "react"
-import { useRouter } from "next/navigation"
-import { useAuth } from "@/lib/auth-context"
-import { projectsApi } from "@/lib/api"
-import type { Project, User } from "@/lib/types"
-import { TaskList } from "@/components/tasks/task-list"
-import { CreateTaskDialog } from "@/components/tasks/create-task-dialog"
-import { AddMemberDialog } from "@/components/projects/add-member-dialog"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, Trash2 } from "lucide-react"
-import { toast } from "sonner"
+import { useEffect, useState, useCallback, use } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
+import { projectsApi, tasksApi } from "@/lib/api";
+import type { Project, User } from "@/lib/types";
+import { TaskList } from "@/components/tasks/task-list";
+import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
+import { AddMemberDialog } from "@/components/projects/add-member-dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import { ArrowLeft, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
-export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
-  const projectId = parseInt(id)
-  const router = useRouter()
-  const { user } = useAuth()
-  const [project, setProject] = useState<Project | null>(null)
-  const [members, setMembers] = useState<User[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [taskRefreshKey, setTaskRefreshKey] = useState(0)
+export default function ProjectDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
+  const projectId = parseInt(id);
+  const router = useRouter();
+  const { user } = useAuth();
+  const [project, setProject] = useState<Project | null>(null);
+  const [members, setMembers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [taskRefreshKey, setTaskRefreshKey] = useState(0);
 
-  const isOwner = user && project && user.id === project.creatorId
+  const isOwner = user && project && user.id === project.creatorId;
 
   const fetchProject = useCallback(async () => {
     try {
-      const projectData = await projectsApi.getById(projectId)
-      setProject(projectData)
+      const projectData = await projectsApi.getById(projectId);
+      setProject(projectData);
     } catch (error) {
-      console.error("Failed to fetch project:", error)
-      toast.error("Project not found")
-      router.push("/projects")
+      console.error("Failed to fetch project:", error);
+      toast.error("Project not found");
+      router.push("/projects");
     }
-  }, [projectId, router])
+  }, [projectId, router]);
 
   const fetchMembers = useCallback(async () => {
     try {
-      const membersData = await projectsApi.getMembers(projectId)
-      setMembers(membersData)
+      const membersData = await projectsApi.getMembers(projectId);
+      setMembers(membersData);
     } catch (error) {
-      console.error("Failed to fetch members:", error)
+      console.error("Failed to fetch members:", error);
     }
-  }, [projectId])
+  }, [projectId]);
 
   useEffect(() => {
-    Promise.all([fetchProject(), fetchMembers()]).finally(() => setIsLoading(false))
-  }, [fetchProject, fetchMembers])
+    Promise.all([fetchProject(), fetchMembers()]).finally(() =>
+      setIsLoading(false)
+    );
+  }, [fetchProject, fetchMembers]);
+
+  const handleDeleteTask = async (taskId: number) => {
+    try {
+      await tasksApi.deleteTask(taskId);
+      toast.success("Task deleted");
+      setTaskRefreshKey((k) => k + 1);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete task"
+      );
+    }
+  };
 
   const handleRemoveMember = async (userId: number) => {
     try {
-      await projectsApi.removeMember(projectId, userId)
-      toast.success("Member removed")
-      fetchMembers()
+      await projectsApi.removeMember(projectId, userId);
+      toast.success("Member removed");
+      fetchMembers();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to remove member")
+      toast.error(
+        error instanceof Error ? error.message : "Failed to remove member"
+      );
     }
-  }
+  };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
-    )
+    );
   }
 
   if (!project) {
-    return null
+    return null;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.push("/projects")}>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => router.push("/projects")}
+        >
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1">
-          <h2 className="text-2xl font-semibold tracking-tight">{project.name}</h2>
-          <p className="text-muted-foreground">{project.description || "No description"}</p>
+          <h2 className="text-2xl font-semibold tracking-tight">
+            {project.name}
+          </h2>
+          <p className="text-muted-foreground">
+            {project.description || "No description"}
+          </p>
         </div>
-        <CreateTaskDialog projectId={projectId} onTaskCreated={() => setTaskRefreshKey((k) => k + 1)} />
+        <CreateTaskDialog
+          projectId={projectId}
+          onTaskCreated={() => setTaskRefreshKey((k) => k + 1)}
+        />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -94,7 +131,11 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               <CardDescription>All tasks in this project</CardDescription>
             </CardHeader>
             <CardContent>
-              <TaskList projectId={projectId} refreshKey={taskRefreshKey} />
+              <TaskList
+                projectId={projectId}
+                refreshKey={taskRefreshKey}
+                onDeleteTask={handleDeleteTask}
+              />
             </CardContent>
           </Card>
         </div>
@@ -118,11 +159,16 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             </CardHeader>
             <CardContent>
               {members.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No members added yet.</p>
+                <p className="text-sm text-muted-foreground">
+                  No members added yet.
+                </p>
               ) : (
                 <div className="space-y-3">
                   {members.map((member) => (
-                    <div key={member.id} className="flex items-center justify-between">
+                    <div
+                      key={member.id}
+                      className="flex items-center justify-between"
+                    >
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
                           <AvatarFallback className="text-xs">
@@ -136,7 +182,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         </Avatar>
                         <div>
                           <p className="text-sm font-medium">{member.name}</p>
-                          <p className="text-xs text-muted-foreground">{member.email}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {member.email}
+                          </p>
                         </div>
                       </div>
                       {isOwner && member.id !== user?.id && (
@@ -166,5 +214,5 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         </div>
       </div>
     </div>
-  )
+  );
 }

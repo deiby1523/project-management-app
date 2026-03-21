@@ -161,7 +161,13 @@ export const tasksApi = {
 
   updateStatus: async (taskId: number, status: string): Promise<Task> => {
     return fetchWithAuth<Task>(`/tasks/${taskId}/status?status=${status}`, {
-      method: "PUT",
+      method: "PATCH",
+    })
+  },
+
+  deleteTask: async (taskId: number): Promise<void> => {
+    return fetchWithAuth<void>(`/tasks/${taskId}`, {
+      method: "DELETE",
     })
   },
 }

@@ -1,8 +1,10 @@
 package com.codemized.task_manager.controller;
 
+import com.codemized.task_manager.dto.task.AssignTaskRequest;
 import com.codemized.task_manager.dto.task.CreateTaskRequest;
 import com.codemized.task_manager.dto.task.TaskResponse;
 import com.codemized.task_manager.model.Task;
+import com.codemized.task_manager.model.enums.TaskStatus;
 import com.codemized.task_manager.service.TaskService;
 import com.codemized.task_manager.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -39,10 +41,28 @@ public class TaskController {
         return ResponseEntity.ok(task);
     }
 
-    @PostMapping("/{taskId}/assign/{userId}")
-    public ResponseEntity<TaskResponse> assignTask(@PathVariable Long taskId, @PathVariable Long userId) {
-        TaskResponse response = taskService.assignTask(taskId, userId);
+    @PatchMapping("/{taskId}/status")
+    public ResponseEntity<TaskResponse> updateTaskStatus(
+            @PathVariable Long taskId,
+            @RequestParam TaskStatus status) {
+
+        TaskResponse response = taskService.updateTaskStatus(taskId, status);
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{taskId}/assign")
+    public ResponseEntity<TaskResponse> assignTask(
+            @PathVariable Long taskId,
+            @RequestBody AssignTaskRequest request) {
+
+        TaskResponse response = taskService.assignTask(taskId, request.getAssignedUserId());
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{taskId}")
+    public ResponseEntity<Void> deleteTask(@PathVariable Long taskId) {
+        taskService.deleteTask(taskId);
+        return ResponseEntity.noContent().build();
     }
 
 
