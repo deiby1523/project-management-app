@@ -10,9 +10,15 @@ import type {
   AssignTaskRequest,
   Comment,
   CreateCommentRequest,
+  Course,
+  CreateCourseRequest,
 } from "./types"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+// Docker
+// const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
+// Dev
+const API_BASE_URL = "http://localhost:8080/api";
 
 // Token management
 export function getToken(): string | null {
@@ -133,6 +139,24 @@ export const projectsApi = {
   getMembers: async (projectId: number): Promise<User[]> => {
     return fetchWithAuth<User[]>(`/projects/${projectId}/members`)
   },
+}
+
+export const coursesApi = {
+  getCourses: async (): Promise<Course[]> => {
+    return fetchWithAuth<Course[]>(`/courses/`)
+  },
+
+  getById: async (id: number): Promise<Course> => {
+    return fetchWithAuth<Course>(`/courses/${id}`)
+  },
+
+  create: async (data: CreateCourseRequest): Promise<Course> => {
+    return fetchWithAuth<Course>("/courses", {
+      method: "POST",
+      body: JSON.stringify(data),
+    })
+  },
+
 }
 
 // Tasks API

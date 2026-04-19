@@ -28,7 +28,20 @@ export interface Project {
   creatorId: number
 }
 
+export interface Course {
+  id: number
+  name: string
+  description: string
+  creatorId: number
+}
+
 export interface CreateProjectRequest {
+  name: string
+  description: string
+  creatorId: number
+}
+
+export interface CreateCourseRequest {
   name: string
   description: string
   creatorId: number

@@ -39,7 +39,7 @@ export function LoginForm() {
       {/* Login */}
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-semibold tracking-tight">Welcome back</CardTitle>
+          <CardTitle className="text-2xl font-semibold tracking-tight">Welcome Back</CardTitle>
           <CardDescription>Enter your credentials to sign in to your account</CardDescription>
         </CardHeader>
   

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { FolderKanban, LayoutDashboard, FolderOpen } from "lucide-react"
+import { FolderKanban, LayoutDashboard, FolderOpen, BookText } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navItems = [
@@ -15,6 +15,11 @@ const navItems = [
     title: "Projects",
     href: "/projects",
     icon: FolderOpen,
+  },
+  {
+    title: "Courses",
+    href: "/courses",
+    icon: BookText,
   },
 ]
 
