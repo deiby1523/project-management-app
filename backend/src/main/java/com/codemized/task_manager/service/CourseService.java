@@ -48,6 +48,12 @@ public class CourseService {
         return mapToResponse(course);
     }
 
+    public CourseResponse deleteCourseById(Long id) {
+        Course course = getCourseOrThrow(id);
+        courseRepository.deleteById(id);
+        return mapToResponse(course);
+    }
+
     // =========================
     // Métodos auxiliares
     // =========================

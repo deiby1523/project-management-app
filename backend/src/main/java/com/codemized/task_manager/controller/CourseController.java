@@ -3,6 +3,7 @@ package com.codemized.task_manager.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,6 +43,11 @@ public class CourseController {
     @GetMapping("/{id}")
     public ResponseEntity<CourseResponse> getCourseById(@PathVariable Long id) {
         return ResponseEntity.ok(courseService.getCourseById(id));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<CourseResponse> deleteCourseById(@PathVariable Long id) {
+        return ResponseEntity.ok(courseService.deleteCourseById(id));
     }
 
 }
