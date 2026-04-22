@@ -55,6 +55,8 @@ async function fetchWithAuth<T>(
     headers,
   })
 
+  console.log(response)
+
   if (!response.ok) {
     const errorText = await response.text()
     throw new Error(errorText || `HTTP error! status: ${response.status}`)
@@ -154,6 +156,12 @@ export const coursesApi = {
     return fetchWithAuth<Course>("/courses", {
       method: "POST",
       body: JSON.stringify(data),
+    })
+  },
+
+  deleteCourse: async (courseId: number): Promise<Course> => {
+    return fetchWithAuth<Course>(`/courses/${courseId}`, {
+      method: "DELETE",
     })
   },
 
