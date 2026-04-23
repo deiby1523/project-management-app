@@ -19,8 +19,20 @@ create table if not exists projects
     created_at  datetime(6)  null,
     description varchar(255) null,
     name        varchar(255) null,
+    course_id   bigint       null,
     creator_id  bigint       null,
     constraint FK_projects_users
+        foreign key (creator_id) references users (id)
+);
+
+create table if not exists courses
+(
+    id          bigint auto_increment primary key,
+    created_at  datetime(6)  null,
+    description varchar(255) null,
+    name        varchar(255) null,
+    creator_id  bigint       null,
+    constraint FK_courses_users
         foreign key (creator_id) references users (id)
 );
 

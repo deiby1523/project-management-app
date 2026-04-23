@@ -24,6 +24,7 @@ export interface RegisterRequest {
 export interface Project {
   id: number
   name: string
+  courseId: number
   description: string
   creatorId: number
 }
@@ -32,11 +33,12 @@ export interface Course {
   id: number
   name: string
   description: string
-  creatorId: number
+  creatorId: number | null
 }
 
 export interface CreateProjectRequest {
   name: string
+  courseId: number | null
   description: string
   creatorId: number
 }

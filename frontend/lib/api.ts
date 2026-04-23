@@ -55,7 +55,6 @@ async function fetchWithAuth<T>(
     headers,
   })
 
-  console.log(response)
 
   if (!response.ok) {
     const errorText = await response.text()
@@ -103,9 +102,6 @@ export const usersApi = {
 
 // Projects API
 export const projectsApi = {
-  // getByCreator: async (creatorId: number): Promise<Project[]> => {
-  //   return fetchWithAuth<Project[]>(`/projects/creator/${creatorId}`)
-  // },
 
   getCollaborative: async (): Promise<Project[]> => {
     return fetchWithAuth<Project[]>(`/projects/collaborative`)

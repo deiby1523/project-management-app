@@ -7,10 +7,12 @@ import com.codemized.task_manager.exception.AccessDeniedException;
 import com.codemized.task_manager.exception.DuplicateResourceException;
 import com.codemized.task_manager.exception.InvalidOperationException;
 import com.codemized.task_manager.exception.ResourceNotFoundException;
+import com.codemized.task_manager.model.Course;
 import com.codemized.task_manager.model.Project;
 import com.codemized.task_manager.model.ProjectMember;
 import com.codemized.task_manager.model.User;
 import com.codemized.task_manager.model.enums.ProjectRole;
+import com.codemized.task_manager.repository.CourseRepository;
 import com.codemized.task_manager.repository.ProjectMemberRepository;
 import com.codemized.task_manager.repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,7 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final ProjectMemberRepository projectMemberRepository;
     private final UserService userService;
+    private final CourseRepository courseRepository;
 
     @Transactional
     public ProjectResponse createProject(CreateProjectRequest request) {
@@ -36,6 +39,15 @@ public class ProjectService {
         project.setName(request.getName());
         project.setDescription(request.getDescription());
         project.setCreator(creator);
+
+        Course course;
+
+        if (request.getCourseId() != null) {
+            course = courseRepository.findById(request.getCourseId()).orElse(null);
+            project.setCourse(course);
+        }
+
+
 
         Project savedProject = projectRepository.save(project);
 
@@ -157,9 +169,16 @@ public class ProjectService {
     }
 
     private ProjectResponse mapToResponse(Project project) {
+        Long courseId = null;
+        
+        if (project.getCourse() != null) {
+            courseId = project.getCourse().getId();
+        }
+    
         return ProjectResponse.builder()
                 .id(project.getId())
                 .name(project.getName())
+                .courseId(courseId)
                 .description(project.getDescription())
                 .creatorId(project.getCreator().getId())
                 .build();

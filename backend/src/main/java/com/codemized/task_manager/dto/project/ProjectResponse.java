@@ -8,6 +8,7 @@ import lombok.Data;
 public class ProjectResponse {
     private long id;
     private String name;
+    private Long courseId;
     private String description;
-    private long creatorId;
+    private Long creatorId;
 }

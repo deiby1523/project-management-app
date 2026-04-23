@@ -30,6 +30,10 @@ public class Project {
 
     private String name;
 
+    @ManyToOne
+    @JoinColumn(name = "course_id")
+    private Course course;
+
     private String description;
 
     @CreationTimestamp

@@ -11,6 +11,8 @@ public class CreateProjectRequest {
     @Size(min = 2, max = 200)
     private String name;
 
+    private Long courseId;
+
     @Size(max = 2000)
     private String description;
 

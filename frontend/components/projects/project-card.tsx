@@ -4,6 +4,7 @@ import Link from "next/link"
 import type { Project } from "@/lib/types"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { FolderOpen } from "lucide-react"
+import { CourseTag } from "./course-tag" // Importa el nuevo componente
 
 interface ProjectCardProps {
   project: Project
@@ -21,6 +22,13 @@ export function ProjectCard({ project }: ProjectCardProps) {
               </div>
               <div>
                 <CardTitle className="text-base">{project.name}</CardTitle>
+                
+                {/* Usamos el componente que busca el curso por su ID */}
+                
+                {project.courseId && (
+                  <CourseTag courseId={project.courseId} />
+                )}
+                
               </div>
             </div>
           </div>

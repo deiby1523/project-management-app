@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/auth-context"
-import { projectsApi } from "@/lib/api"
+import { projectsApi, coursesApi } from "@/lib/api"
+import type { Course } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -15,6 +16,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Spinner } from "@/components/ui/spinner"
 import { Plus } from "lucide-react"
@@ -28,8 +36,27 @@ export function CreateProjectDialog({ onProjectCreated }: CreateProjectDialogPro
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
+  // Inicializamos con "none" para representar la opción vacía por defecto
+  const [courseId, setCourseId] = useState<string>("none")
+  
+  const [courses, setCourses] = useState<Course[]>([])
+  const [isLoadingCourses, setIsLoadingCourses] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  
   const { user } = useAuth()
+
+  useEffect(() => {
+    if (open) {
+      setIsLoadingCourses(true)
+      coursesApi.getCourses()
+        .then(setCourses)
+        .catch((error) => {
+          console.error("Error fetching courses:", error)
+          toast.error("Failed to load courses")
+        })
+        .finally(() => setIsLoadingCourses(false))
+    }
+  }, [open])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -37,15 +64,27 @@ export function CreateProjectDialog({ onProjectCreated }: CreateProjectDialogPro
 
     setIsLoading(true)
     try {
-      await projectsApi.create({
-        name,
-        description,
-        creatorId: user.id,
-      })
+      
+      let courseIdFinal = null;
+      if (courseId == "none") {
+        courseIdFinal = parseInt(courseId, 10)
+      }
+
+      // Preparamos los datos base
+      const projectData: any = {
+        name: name,
+        courseId: courseIdFinal,
+        description: description,
+        creatorId: user.id
+      }
+
+      await projectsApi.create(projectData)
       toast.success("Project created successfully")
+      
       setOpen(false)
       setName("")
       setDescription("")
+      setCourseId("none")
       onProjectCreated()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to create project")
@@ -69,6 +108,29 @@ export function CreateProjectDialog({ onProjectCreated }: CreateProjectDialogPro
             <DialogDescription>Add a new project to organize your tasks.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            
+            <Field>
+              <FieldLabel htmlFor="project-course">Course</FieldLabel>
+              <Select
+                value={courseId}
+                onValueChange={setCourseId}
+                disabled={isLoading || isLoadingCourses}
+              >
+                <SelectTrigger id="project-course">
+                  <SelectValue placeholder={isLoadingCourses ? "Loading courses..." : "Select a course"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {/* Opción explícita para no seleccionar ningún curso */}
+                  <SelectItem value="none">None</SelectItem>
+                  {courses.map((course) => (
+                    <SelectItem key={course.id} value={course.id.toString()}>
+                      {course.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+
             <Field>
               <FieldLabel htmlFor="project-name">Name</FieldLabel>
               <Input
@@ -80,6 +142,7 @@ export function CreateProjectDialog({ onProjectCreated }: CreateProjectDialogPro
                 disabled={isLoading}
               />
             </Field>
+            
             <Field>
               <FieldLabel htmlFor="project-description">Description</FieldLabel>
               <Textarea
@@ -93,9 +156,18 @@ export function CreateProjectDialog({ onProjectCreated }: CreateProjectDialogPro
             </Field>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isLoading}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => {
+                setOpen(false)
+                setCourseId("none")
+              }} 
+              disabled={isLoading}
+            >
               Cancel
             </Button>
+            {/* Se retiró la restricción de courseId para habilitar el botón */}
             <Button type="submit" disabled={isLoading || !name.trim()}>
               {isLoading ? <Spinner className="mr-2" /> : null}
               Create Project
