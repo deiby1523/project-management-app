@@ -9,6 +9,8 @@ import { FolderOpen, Pencil, Trash2 } from "lucide-react";
 import { CreateCourseDialog } from "@/components/courses/create-course-dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { EditCourseDialog } from "@/components/courses/edit-course-dialog";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,7 +26,7 @@ export default function CoursesPage() {
   const { user } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Estado para controlar la confirmación de eliminación
   const [courseToDelete, setCourseToDelete] = useState<number | null>(null);
 
@@ -32,7 +34,7 @@ export default function CoursesPage() {
     if (!user) return;
     setIsLoading(true);
     try {
-      // Nota: He quitado Promise.try ya que no es estándar en JS nativo 
+      // Nota: He quitado Promise.try ya que no es estándar en JS nativo
       // a menos que uses una librería específica; usualmente basta con await directo.
       const data = await coursesApi.getCourses();
       setCourses(data);
@@ -45,7 +47,7 @@ export default function CoursesPage() {
 
   const executeDelete = async () => {
     if (courseToDelete === null) return;
-    
+
     try {
       await coursesApi.deleteCourse(courseToDelete);
       toast.success("Course deleted");
@@ -113,17 +115,12 @@ export default function CoursesPage() {
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-primary"
-                      onClick={() => {
-                        /* Tu lógica de edición aquí */
-                        console.log("Edit course", course.id);
-                      }}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+
+                    {/* 2. Reemplaza el botón de edición por el Diálogo */}
+                    <EditCourseDialog
+                      course={course}
+                      onCourseUpdated={fetchCourses}
+                    />
                   </td>
                 </tr>
               ))}
@@ -132,20 +129,21 @@ export default function CoursesPage() {
         </div>
       )}
 
-      <AlertDialog 
-        open={courseToDelete !== null} 
+      <AlertDialog
+        open={courseToDelete !== null}
         onOpenChange={(open) => !open && setCourseToDelete(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar este curso?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción es irreversible. Se eliminarán todos los datos asociados a este curso.
+              Esta acción es irreversible. Se eliminarán todos los datos
+              asociados a este curso.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={executeDelete}
               className="bg-destructive hover:bg-destructive/80"
             >

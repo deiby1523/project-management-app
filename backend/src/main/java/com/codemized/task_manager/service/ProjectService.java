@@ -15,6 +15,8 @@ import com.codemized.task_manager.model.enums.ProjectRole;
 import com.codemized.task_manager.repository.CourseRepository;
 import com.codemized.task_manager.repository.ProjectMemberRepository;
 import com.codemized.task_manager.repository.ProjectRepository;
+
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,8 +49,6 @@ public class ProjectService {
             project.setCourse(course);
         }
 
-
-
         Project savedProject = projectRepository.save(project);
 
         ProjectMember owner = new ProjectMember();
@@ -59,6 +59,37 @@ public class ProjectService {
         projectMemberRepository.save(owner);
 
         return mapToResponse(savedProject);
+    }
+
+    @Transactional
+    public ProjectResponse updateProject(Long projectId, CreateProjectRequest request) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException("Proyecto no encontrado"));
+
+        User currentUser = userService.getCurrentUser();
+        if (!project.getCreator().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("No tienes permiso para modificar este proyecto");
+        }
+
+        project.setName(request.getName());
+        project.setDescription(request.getDescription());
+
+        if (request.getCourseId() != null) {
+            Course course = courseRepository.findById(request.getCourseId())
+                    .orElseThrow(() -> new EntityNotFoundException("Curso no encontrado"));
+            project.setCourse(course);
+        } else {
+            project.setCourse(null);
+        }
+
+        Project updatedProject = projectRepository.save(project);
+        return mapToResponse(updatedProject);
+    }
+
+    public ProjectResponse deleteProjectById(Long id) {
+        Project project = getProjectOrThrow(id);
+        projectRepository.deleteById(id);
+        return mapToResponse(project);
     }
 
     @Transactional
@@ -170,11 +201,11 @@ public class ProjectService {
 
     private ProjectResponse mapToResponse(Project project) {
         Long courseId = null;
-        
+
         if (project.getCourse() != null) {
             courseId = project.getCourse().getId();
         }
-    
+
         return ProjectResponse.builder()
                 .id(project.getId())
                 .name(project.getName())

@@ -7,7 +7,7 @@ import { projectsApi, tasksApi } from "@/lib/api"
 import type { Project, Task } from "@/lib/types"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { FolderOpen, CheckSquare, Clock, ArrowRight } from "lucide-react"
+import { FolderOpen, CheckSquare, Clock, ArrowRight, Target } from "lucide-react"
 
 export default function DashboardPage() {
   const { user } = useAuth()
@@ -26,8 +26,7 @@ export default function DashboardPage() {
           projectsApi.getCollaborative(),
         ])
 
-        const myProjects = await projectsApi.getMyProjects()
-        setMyProjects(myProjects)
+        setMyProjects(owned)
         setCollaborativeProjects(collab)
 
         // Fetch tasks from first few projects
@@ -60,6 +59,10 @@ export default function DashboardPage() {
   const todoTasks = recentTasks.filter((t) => t.status === "TODO").length
   const inProgressTasks = recentTasks.filter((t) => t.status === "IN_PROGRESS").length
 
+  // Cálculos para la meta de proyectos
+  const PROJECT_GOAL = 52
+  const progressPercentage = Math.min((totalProjects / PROJECT_GOAL) * 100, 100)
+
   return (
     <div className="space-y-6">
       <div>
@@ -67,7 +70,8 @@ export default function DashboardPage() {
         <p className="text-muted-foreground">Here{"'"}s an overview of your projects and tasks.</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      {/* Actualizado a 4 columnas para acomodar la nueva tarjeta de progreso */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
@@ -80,6 +84,27 @@ export default function DashboardPage() {
             </p>
           </CardContent>
         </Card>
+
+        {/* Nueva Tarjeta: Meta de Proyectos */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Project Goal</CardTitle>
+            <Target className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalProjects} / {PROJECT_GOAL}</div>
+            <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-secondary">
+              <div
+                className="h-full bg-lime-400 transition-all duration-500 ease-in-out"
+                style={{ width: `${progressPercentage}%` }}
+              />
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+              {progressPercentage.toFixed(1)}% completed
+            </p>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">To Do</CardTitle>

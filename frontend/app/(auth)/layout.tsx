@@ -34,8 +34,8 @@ export default function AuthLayout({
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-muted/30 p-4">
       <div className="mb-8 flex items-center gap-2">
-        <FolderKanban className="h-8 w-8" />
-        <span className="text-2xl font-semibold">TaskFlow</span>
+        <FolderKanban className="h-8 w-8 text-lime-400" />
+        <span className="text-2xl text-lime-400 font-semibold">ProjectFlow</span>
       </div>
       {children}
     </div>

@@ -7,11 +7,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.codemized.task_manager.dto.course.CourseResponse;
 import com.codemized.task_manager.dto.course.CreateCourseRequest;
+import com.codemized.task_manager.exception.AccessDeniedException;
 import com.codemized.task_manager.exception.ResourceNotFoundException;
 import com.codemized.task_manager.model.Course;
 import com.codemized.task_manager.model.User;
 import com.codemized.task_manager.repository.CourseRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -34,13 +36,30 @@ public class CourseService {
 
         return mapToResponse(savedCourse);
     }
-    
-    public List<CourseResponse> getAll() {
-        return courseRepository.findAll().stream()
-        .map(this::mapToResponse)
-        .toList();
+
+    @Transactional
+    public CourseResponse updateCourse(Long courseId, CreateCourseRequest request) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new EntityNotFoundException("Curso no encontrado con ID: " + courseId));
+
+        // User currentUser = userService.getCurrentUser();
+        // if (!course.getCreator().getId().equals(currentUser.getId())) {
+        //     throw new AccessDeniedException("No tienes privilegios para editar este curso");
+        // }
+
+        course.setName(request.getName());
+        course.setDescription(request.getDescription());
+
+        Course updatedCourse = courseRepository.save(course);
+
+        return mapToResponse(updatedCourse);
     }
 
+    public List<CourseResponse> getAll() {
+        return courseRepository.findAll().stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
 
     public CourseResponse getCourseById(Long id) {
         Course course = getCourseOrThrow(id);

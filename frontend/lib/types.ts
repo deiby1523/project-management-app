@@ -40,13 +40,13 @@ export interface CreateProjectRequest {
   name: string
   courseId: number | null
   description: string
-  creatorId: number
+  creatorId: number | null
 }
 
 export interface CreateCourseRequest {
   name: string
   description: string
-  creatorId: number
+  creatorId: number | null
 }
 
 // Task types

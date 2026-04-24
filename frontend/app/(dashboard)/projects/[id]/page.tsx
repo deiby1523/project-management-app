@@ -9,6 +9,7 @@ import { TaskList } from "@/components/tasks/task-list";
 import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
 import { AddMemberDialog } from "@/components/projects/add-member-dialog";
 import { Button } from "@/components/ui/button";
+
 import {
   Card,
   CardContent,
@@ -20,6 +21,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { CourseTag } from "@/components/projects/course-tag";
+import { EditProjectDialog } from "@/components/projects/edit-project-dialog";
 
 export default function ProjectDetailPage({
   params,
@@ -109,14 +112,24 @@ export default function ProjectDetailPage({
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <div className="flex-1">
-          <h2 className="text-2xl font-semibold tracking-tight">
-            {project.name}
-          </h2>
-          <p className="text-muted-foreground">
-            {project.description || "No description"}
-          </p>
+        <div className="flex-1 flex items-start justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight">
+              {project.name}
+            </h2>
+            <p className="text-muted-foreground">
+              {project.description || "No description"}
+            </p>
+            {project.courseId && <CourseTag courseId={project.courseId} />}
+          </div>
+
         </div>
+        {isOwner && (
+            <EditProjectDialog
+              project={project}
+              onProjectUpdated={fetchProject}
+            />
+          )}
         <CreateTaskDialog
           projectId={projectId}
           onTaskCreated={() => setTaskRefreshKey((k) => k + 1)}

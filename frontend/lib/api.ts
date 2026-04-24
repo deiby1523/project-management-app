@@ -122,6 +122,13 @@ export const projectsApi = {
     })
   },
 
+  update: async (projectId: number,data: CreateProjectRequest): Promise<Project> => {
+    return fetchWithAuth<Project>(`/projects/update/${projectId}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    })
+  },
+
   addMember: async (projectId: number, userId: number): Promise<void> => {
     return fetchWithAuth<void>(`/projects/${projectId}/members/${userId}`, {
       method: "POST",
@@ -151,6 +158,13 @@ export const coursesApi = {
   create: async (data: CreateCourseRequest): Promise<Course> => {
     return fetchWithAuth<Course>("/courses", {
       method: "POST",
+      body: JSON.stringify(data),
+    })
+  },
+
+  updateCourse: async (courseId: number,data: CreateCourseRequest): Promise<Course> => {
+    return fetchWithAuth<Course>(`/courses/${courseId}`, {
+      method: "PUT",
       body: JSON.stringify(data),
     })
   },
