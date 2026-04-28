@@ -49,7 +49,7 @@ public class ProjectController {
 
     @GetMapping("/my")
     public ResponseEntity<List<ProjectResponse>> getMyProjects() {
-        logger.info("Esta entrando a getMyProjects()");
+        // logger.info("Esta entrando a getMyProjects()");
         User user = userService.getCurrentUser();
         List<ProjectResponse> projects = projectService.getProjectsByUser(user);
         return ResponseEntity.ok(projects);

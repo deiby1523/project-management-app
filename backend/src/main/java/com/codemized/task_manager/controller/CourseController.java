@@ -14,8 +14,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.codemized.task_manager.dto.course.CourseResponse;
 import com.codemized.task_manager.dto.course.CreateCourseRequest;
+import com.codemized.task_manager.model.User;
 import com.codemized.task_manager.service.CourseService;
 // import com.codemized.task_manager.service.UserService;
+import com.codemized.task_manager.service.UserService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,8 +28,8 @@ import lombok.RequiredArgsConstructor;
 public class CourseController {
 
     private final CourseService courseService;
-    // private final UserService userService;
-    
+    private final UserService userService;
+
     @PostMapping
     public ResponseEntity<CourseResponse> createCourse(@Valid @RequestBody CreateCourseRequest request) {
         CourseResponse created = courseService.createCourse(request);
@@ -35,8 +37,9 @@ public class CourseController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CourseResponse> updateCourse(@PathVariable Long id, @Valid @RequestBody CreateCourseRequest request) {
-        CourseResponse updated = courseService.updateCourse(id,request);
+    public ResponseEntity<CourseResponse> updateCourse(@PathVariable Long id,
+            @Valid @RequestBody CreateCourseRequest request) {
+        CourseResponse updated = courseService.updateCourse(id, request);
         return ResponseEntity.ok(updated);
     }
 
@@ -46,7 +49,6 @@ public class CourseController {
         return ResponseEntity.ok(courses);
     }
 
-
     @GetMapping("/{id}")
     public ResponseEntity<CourseResponse> getCourseById(@PathVariable Long id) {
         return ResponseEntity.ok(courseService.getCourseById(id));
@@ -55,6 +57,33 @@ public class CourseController {
     @DeleteMapping("/{id}")
     public ResponseEntity<CourseResponse> deleteCourseById(@PathVariable Long id) {
         return ResponseEntity.ok(courseService.deleteCourseById(id));
+    }
+
+    @PostMapping("/{courseId}/users/{userId}")
+    public ResponseEntity<Void> addUserToCourse(
+            @PathVariable Long courseId,
+            @PathVariable Long userId) {
+        courseService.addUserToCourse(courseId, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<List<CourseResponse>> getMyCourses() {
+        User user = userService.getCurrentUser();
+
+        List<CourseResponse> courses = courseService.getCoursesByUser(user);
+
+        return ResponseEntity.ok(courses);
+    }
+
+    @DeleteMapping
+    public ResponseEntity<Void> removeUserFromCourse(
+            @PathVariable Long courseId,
+            @PathVariable Long userId) {
+
+        courseService.removeUserOfCourse(courseId, userId);
+
+        return ResponseEntity.ok().build();
     }
 
 }

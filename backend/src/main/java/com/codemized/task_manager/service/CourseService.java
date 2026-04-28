@@ -1,6 +1,7 @@
 package com.codemized.task_manager.service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -8,10 +9,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.codemized.task_manager.dto.course.CourseResponse;
 import com.codemized.task_manager.dto.course.CreateCourseRequest;
 import com.codemized.task_manager.exception.AccessDeniedException;
+import com.codemized.task_manager.exception.DuplicateResourceException;
+import com.codemized.task_manager.exception.InvalidOperationException;
 import com.codemized.task_manager.exception.ResourceNotFoundException;
 import com.codemized.task_manager.model.Course;
 import com.codemized.task_manager.model.User;
+import com.codemized.task_manager.model.UserCourse;
 import com.codemized.task_manager.repository.CourseRepository;
+import com.codemized.task_manager.repository.UserCourseRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +27,7 @@ public class CourseService {
 
     private final CourseRepository courseRepository;
     private final UserService userService;
+    private final UserCourseRepository userCourseRepository;
 
     @Transactional
     public CourseResponse createCourse(CreateCourseRequest request) {
@@ -44,7 +50,8 @@ public class CourseService {
 
         // User currentUser = userService.getCurrentUser();
         // if (!course.getCreator().getId().equals(currentUser.getId())) {
-        //     throw new AccessDeniedException("No tienes privilegios para editar este curso");
+        // throw new AccessDeniedException("No tienes privilegios para editar este
+        // curso");
         // }
 
         course.setName(request.getName());
@@ -71,6 +78,40 @@ public class CourseService {
         Course course = getCourseOrThrow(id);
         courseRepository.deleteById(id);
         return mapToResponse(course);
+    }
+
+    @Transactional
+    public void addUserToCourse(Long courseId, Long userId) {
+        Course course = getCourseOrThrow(courseId);
+        User user = userService.getUserById(userId);
+
+        boolean alreadyInCourse = userCourseRepository.findByCourseAndUser(course, user).isPresent();
+
+        if (alreadyInCourse) {
+            throw new DuplicateResourceException("User is already in this course");
+        }
+
+        UserCourse userCourse = new UserCourse();
+        userCourse.setCourse(course);
+        userCourse.setUser(user);
+
+        userCourseRepository.save(userCourse);
+    }
+
+    @Transactional
+    public void removeUserOfCourse(Long courseId, Long userId) {
+        Course course = getCourseOrThrow(courseId);
+        User user = userService.getUserById(userId);
+
+        UserCourse userCourse = userCourseRepository.findByCourseAndUser(course, user)
+                .orElseThrow(() -> new InvalidOperationException("User is not registered in this course"));
+
+        userCourseRepository.delete(userCourse);
+    }
+
+    public List<CourseResponse> getCoursesByUser(User user) {
+        return userCourseRepository.findByUser(user).stream().map(UserCourse::getCourse).distinct()
+                .map(this::mapToResponse).collect(Collectors.toList());
     }
 
     // =========================
