@@ -87,7 +87,12 @@ public class ProjectService {
     }
 
     public ProjectResponse deleteProjectById(Long id) {
+
         Project project = getProjectOrThrow(id);
+
+        // only the owner can delete the project
+        validateOwner(project);
+
         projectRepository.deleteById(id);
         return mapToResponse(project);
     }

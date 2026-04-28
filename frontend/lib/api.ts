@@ -144,6 +144,12 @@ export const projectsApi = {
   getMembers: async (projectId: number): Promise<User[]> => {
     return fetchWithAuth<User[]>(`/projects/${projectId}/members`)
   },
+
+  deleteProject: async (projectId: number): Promise<Project> => {
+    return fetchWithAuth<Project>(`/projects/${projectId}`, {
+      method: "DELETE",
+    })
+  },
 }
 
 export const coursesApi = {

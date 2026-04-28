@@ -3,17 +3,28 @@
 import Link from "next/link"
 import type { Project } from "@/lib/types"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { FolderOpen } from "lucide-react"
-import { CourseTag } from "./course-tag" // Importa el nuevo componente
+import { FolderOpen, Pencil, Trash2 } from "lucide-react"
+import { CourseTag } from "./course-tag"
+import { Button } from "@/components/ui/button"
 
 interface ProjectCardProps {
   project: Project
+  onEdit: () => void
+  onDelete: () => void
 }
 
-export function ProjectCard({ project }: ProjectCardProps) {
+export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
+  
+  // Función para evitar que el clic en el botón active el Link del Card
+  const handleAction = (e: React.MouseEvent, callback: () => void) => {
+    e.preventDefault()
+    e.stopPropagation()
+    callback()
+  }
+
   return (
     <Link href={`/projects/${project.id}`}>
-      <Card className="h-full transition-colors hover:bg-muted/50">
+      <Card className="h-full transition-colors hover:bg-muted/50 group relative">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
@@ -22,14 +33,30 @@ export function ProjectCard({ project }: ProjectCardProps) {
               </div>
               <div>
                 <CardTitle className="text-base">{project.name}</CardTitle>
-                
-                {/* Usamos el componente que busca el curso por su ID */}
-                
                 {project.courseId && (
                   <CourseTag courseId={project.courseId} />
                 )}
-                
               </div>
+            </div>
+
+            {/* Contenedor de acciones */}
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => handleAction(e, onEdit)}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => handleAction(e, onDelete)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </CardHeader>

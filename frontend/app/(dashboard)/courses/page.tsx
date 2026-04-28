@@ -34,8 +34,6 @@ export default function CoursesPage() {
     if (!user) return;
     setIsLoading(true);
     try {
-      // Nota: He quitado Promise.try ya que no es estándar en JS nativo
-      // a menos que uses una librería específica; usualmente basta con await directo.
       const data = await coursesApi.getCourses();
       setCourses(data);
     } catch (error) {
@@ -110,13 +108,12 @@ export default function CoursesPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                      className="h-8 w-8 text-mute-foreground hover:text-destructive"
                       onClick={() => setCourseToDelete(course.id)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
 
-                    {/* 2. Reemplaza el botón de edición por el Diálogo */}
                     <EditCourseDialog
                       course={course}
                       onCourseUpdated={fetchCourses}
@@ -145,7 +142,7 @@ export default function CoursesPage() {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={executeDelete}
-              className="bg-destructive hover:bg-destructive/80"
+              className="bg-destructive text-white hover:bg-destructive/80"
             >
               Confirmar Eliminación
             </AlertDialogAction>

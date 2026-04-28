@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { projectsApi, coursesApi } from "@/lib/api"
+import { useAuth } from "@/lib/auth-context" // Importante
 import type { Course, CreateProjectRequest, Project } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,7 +14,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import {
   Select,
@@ -24,16 +24,22 @@ import {
 } from "@/components/ui/select"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Spinner } from "@/components/ui/spinner"
-import { Edit2 } from "lucide-react"
 import { toast } from "sonner"
 
 interface EditProjectDialogProps {
   project: Project
+  open: boolean // Controlado desde el padre
+  onOpenChange: (open: boolean) => void // Controlado desde el padre
   onProjectUpdated: () => void
 }
 
-export function EditProjectDialog({ project, onProjectUpdated }: EditProjectDialogProps) {
-  const [open, setOpen] = useState(false)
+export function EditProjectDialog({ 
+  project, 
+  open, 
+  onOpenChange, 
+  onProjectUpdated 
+}: EditProjectDialogProps) {
+  const { user } = useAuth()
   const [name, setName] = useState(project.name)
   const [description, setDescription] = useState(project.description || "")
   const [courseId, setCourseId] = useState<string>(project.courseId?.toString() || "none")
@@ -42,43 +48,46 @@ export function EditProjectDialog({ project, onProjectUpdated }: EditProjectDial
   const [isLoadingCourses, setIsLoadingCourses] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
-  // Sincronizar estados si el proyecto cambia externamente
+  // Sincronizar datos cuando el diálogo se abre
   useEffect(() => {
     if (open) {
       setName(project.name)
       setDescription(project.description || "")
       setCourseId(project.courseId?.toString() || "none")
       
-      setIsLoadingCourses(true)
-      coursesApi.getCourses()
-        .then(setCourses)
-        .catch((error) => {
-          console.error("Error fetching courses:", error)
+      const fetchCourses = async () => {
+        setIsLoadingCourses(true)
+        try {
+          const data = await coursesApi.getCourses()
+          setCourses(data)
+        } catch (error) {
           toast.error("Failed to load courses")
-        })
-        .finally(() => setIsLoadingCourses(false))
+        } finally {
+          setIsLoadingCourses(false)
+        }
+      }
+      fetchCourses()
     }
   }, [open, project])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    if (!name.trim() || !user) return
 
+    setIsLoading(true)
     try {
       const courseIdFinal = courseId === "none" ? null : parseInt(courseId, 10)
 
       const updateData: CreateProjectRequest = {
-          name: name.trim(),
-          description: description.trim(),
-          courseId: courseIdFinal,
-          creatorId: 1,
+        name: name.trim(),
+        description: description.trim(),
+        courseId: courseIdFinal,
+        creatorId: user.id, // Usar el ID real del usuario
       }
 
       await projectsApi.update(project.id, updateData)
       toast.success("Project updated successfully")
-      
-      setOpen(false)
-      onProjectUpdated()
+      onProjectUpdated() // El padre cerrará el diálogo
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to update project")
     } finally {
@@ -87,13 +96,7 @@ export function EditProjectDialog({ project, onProjectUpdated }: EditProjectDial
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Edit2 className="mr-2 h-4 w-4" />
-          Edit Project
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
@@ -103,7 +106,6 @@ export function EditProjectDialog({ project, onProjectUpdated }: EditProjectDial
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            
             <Field>
               <FieldLabel htmlFor="edit-project-course">Course</FieldLabel>
               <Select
@@ -112,7 +114,7 @@ export function EditProjectDialog({ project, onProjectUpdated }: EditProjectDial
                 disabled={isLoading || isLoadingCourses}
               >
                 <SelectTrigger id="edit-project-course">
-                  <SelectValue placeholder={isLoadingCourses ? "Loading courses..." : "Select a course"} />
+                  <SelectValue placeholder={isLoadingCourses ? "Loading..." : "Select a course"} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">None</SelectItem>
@@ -151,13 +153,13 @@ export function EditProjectDialog({ project, onProjectUpdated }: EditProjectDial
             <Button 
               type="button" 
               variant="outline" 
-              onClick={() => setOpen(false)} 
+              onClick={() => onOpenChange(false)} 
               disabled={isLoading}
             >
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading || !name.trim()}>
-              {isLoading ? <Spinner className="mr-2" /> : null}
+              {isLoading && <Spinner className="mr-2" />}
               Save Changes
             </Button>
           </DialogFooter>
