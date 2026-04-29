@@ -76,7 +76,7 @@ public class CourseController {
         return ResponseEntity.ok(courses);
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{courseId}/users/{userId}")
     public ResponseEntity<Void> removeUserFromCourse(
             @PathVariable Long courseId,
             @PathVariable Long userId) {

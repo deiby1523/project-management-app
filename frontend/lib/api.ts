@@ -116,6 +116,10 @@ export const projectsApi = {
     return fetchWithAuth<Project>(`/projects/${id}`)
   },
 
+  getByCourse: async (courseId: number) : Promise<Project[]> => {
+    return fetchWithAuth<Project[]>(`/projects/course/${courseId}`)
+  },
+
   getProjectStats: async (): Promise<ProjectStats> => {
     return fetchWithAuth<ProjectStats>(`/projects/stats`)
   },

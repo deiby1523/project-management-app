@@ -23,7 +23,9 @@ import {
 export default function CoursesPage() {
   const { user } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
-  const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<number>>(new Set());
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<number>>(
+    new Set()
+  );
   const [togglingCourseId, setTogglingCourseId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [courseToDelete, setCourseToDelete] = useState<number | null>(null);
@@ -130,14 +132,21 @@ export default function CoursesPage() {
               {courses.map((course) => {
                 const isEnrolled = enrolledCourseIds.has(course.id);
                 const isToggling = togglingCourseId === course.id;
+
                 return (
-                  <tr key={course.id} className="border-t hover:bg-muted/50">
+                  <tr
+                    key={course.id}
+                    onClick={() =>
+                      (window.location.href = `/courses/${course.id}`)
+                    }
+                    className="border-t hover:bg-muted/50 cursor-pointer transition-colors"
+                  >
                     <td className="px-4 py-2 font-medium">{course.name}</td>
+
                     <td className="px-4 py-2 text-muted-foreground">
                       {course.description || "-"}
                     </td>
 
-                    {/* Status label */}
                     <td className="px-4 py-2">
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
@@ -150,10 +159,11 @@ export default function CoursesPage() {
                       </span>
                     </td>
 
-                    {/* Options */}
-                    <td className="px-4 py-2">
+                    <td
+                      className="px-4 py-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <div className="flex items-center gap-1">
-                        {/* Toggle enrollment button */}
                         <Button
                           variant="ghost"
                           size="sm"
@@ -172,6 +182,7 @@ export default function CoursesPage() {
                           ) : (
                             <LogIn className="h-3.5 w-3.5" />
                           )}
+
                           {isEnrolled ? "Leave" : "Join"}
                         </Button>
 

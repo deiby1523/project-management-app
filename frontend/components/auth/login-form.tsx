@@ -102,8 +102,8 @@ export function LoginForm() {
           </CardDescription>
         </CardHeader>
         <CardContent className="text-sm space-y-2">
-          <p><strong>Email:</strong> deibyprada@gmail.com</p>
-          <p><strong>Password:</strong> deiby123</p>
+          <p className="mt-5"><strong>Email:</strong> yulieth@uts.edu.co</p>
+          <p className="mb-5"><strong>Password:</strong> yuli123</p>
           <p className="text-muted-foreground">
             You can also create a new account if needed.
           </p>

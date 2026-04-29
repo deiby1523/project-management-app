@@ -74,6 +74,12 @@ public class ProjectController {
         return ResponseEntity.ok(projectService.getProjectById(id));
     }
 
+    @GetMapping("/course/{courseId}")
+    public ResponseEntity<List<ProjectResponse>> getProjectsByCourse(@PathVariable Long courseId) {
+        List<ProjectResponse> projects = projectService.getProjectsByCourse(courseId);
+        return ResponseEntity.ok(projects);
+    }
+
     @PostMapping("/{projectId}/members/{userId}")
     public ResponseEntity<Void> addMemberToProject(
             @PathVariable Long projectId,

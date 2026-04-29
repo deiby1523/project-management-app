@@ -1,5 +1,6 @@
 package com.codemized.task_manager.service;
 
+import com.codemized.task_manager.dto.course.CourseResponse;
 import com.codemized.task_manager.dto.project.CreateProjectRequest;
 import com.codemized.task_manager.dto.project.ProjectResponse;
 import com.codemized.task_manager.dto.user.UserResponse;
@@ -11,6 +12,7 @@ import com.codemized.task_manager.model.Course;
 import com.codemized.task_manager.model.Project;
 import com.codemized.task_manager.model.ProjectMember;
 import com.codemized.task_manager.model.User;
+import com.codemized.task_manager.model.UserCourse;
 import com.codemized.task_manager.model.enums.ProjectRole;
 import com.codemized.task_manager.repository.CourseRepository;
 import com.codemized.task_manager.repository.ProjectMemberRepository;
@@ -164,6 +166,12 @@ public class ProjectService {
                 .collect(Collectors.toList());
     }
 
+    public List<ProjectResponse> getProjectsByCourse(Long courseId) {
+        List<Project> projects = projectRepository.findByCourseId(courseId);
+
+        return projects.stream().map(this::mapToResponse).collect(Collectors.toList());
+    }
+
     public List<ProjectResponse> getCollaborativeProjects(User user) {
         return projectMemberRepository.findByUserAndRoleNot(user, ProjectRole.OWNER).stream()
                 .map(ProjectMember::getProject)
@@ -182,10 +190,9 @@ public class ProjectService {
     public ProjectStatsResponse getProjectStatistics() {
 
         User user = userService.getCurrentUser();
-    
-        List<Project> projects =
-                projectRepository.findByCreatorIdOrderByCreatedAtAsc(user.getId());
-    
+
+        List<Project> projects = projectRepository.findByCreatorIdOrderByCreatedAtAsc(user.getId());
+
         if (projects.isEmpty()) {
             return ProjectStatsResponse.builder()
                     .totalProjects(0)
@@ -195,19 +202,19 @@ public class ProjectService {
                     .averagePerYear(0)
                     .build();
         }
-    
+
         long total = projects.size();
-    
+
         Instant firstCreatedAt = projects.get(0).getCreatedAt();
-    
+
         LocalDate start = firstCreatedAt.atZone(ZoneId.systemDefault()).toLocalDate();
         LocalDate now = LocalDate.now();
-    
+
         long weeks = Math.max(1, ChronoUnit.WEEKS.between(start, now));
         long months = Math.max(1, ChronoUnit.MONTHS.between(start, now));
         long years = Math.max(1, ChronoUnit.YEARS.between(start, now));
         long semesters = Math.max(1, months / 6);
-    
+
         return ProjectStatsResponse.builder()
                 .totalProjects(total)
                 .averagePerWeek(round((double) total / weeks))

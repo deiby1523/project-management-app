@@ -11,4 +11,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     List<Project> findByCreatorIdOrderByCreatedAtAsc(Long creatorId);
 
+    List<Project> findByCourseId(Long courseId);
+
 }
