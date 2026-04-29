@@ -48,6 +48,17 @@ create table if not exists project_members
         foreign key (user_id) references users (id)
 );
 
+create table if not exists user_courses
+(
+    id          bigint auto_increment primary key,
+    course_id   bigint                  not null,
+    user_id     bigint                  not null,
+    constraint FK_uc_course
+        foreign key(course_id) references courses (id),
+    constraint FK_pm_user
+        foreign key (user_id) references users (id)
+)
+
 create table if not exists tasks
 (
     id               bigint auto_increment primary key,

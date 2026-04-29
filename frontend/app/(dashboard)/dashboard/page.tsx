@@ -3,17 +3,18 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
-import { projectsApi, tasksApi } from "@/lib/api"
-import type { Project, Task } from "@/lib/types"
+import { projectsApi, tasksApi, coursesApi } from "@/lib/api"
+import type { Project, Task, Course } from "@/lib/types"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { FolderOpen, CheckSquare, Clock, ArrowRight, Target } from "lucide-react"
+import { FolderOpen, CheckSquare, Clock, ArrowRight, Target, BookOpen } from "lucide-react"
 
 export default function DashboardPage() {
   const { user } = useAuth()
   const [myProjects, setMyProjects] = useState<Project[]>([])
   const [collaborativeProjects, setCollaborativeProjects] = useState<Project[]>([])
   const [recentTasks, setRecentTasks] = useState<Task[]>([])
+  const [myCourses, setMyCourses] = useState<Course[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -21,13 +22,15 @@ export default function DashboardPage() {
       if (!user) return
 
       try {
-        const [owned, collab] = await Promise.all([
+        const [owned, collab, courses] = await Promise.all([
           projectsApi.getMyProjects(),
           projectsApi.getCollaborative(),
+          coursesApi.getMyCourses(),
         ])
 
         setMyProjects(owned)
         setCollaborativeProjects(collab)
+        setMyCourses(courses)
 
         // Fetch tasks from first few projects
         const allProjects = [...owned, ...collab]
@@ -59,7 +62,6 @@ export default function DashboardPage() {
   const todoTasks = recentTasks.filter((t) => t.status === "TODO").length
   const inProgressTasks = recentTasks.filter((t) => t.status === "IN_PROGRESS").length
 
-  // Cálculos para la meta de proyectos
   const PROJECT_GOAL = 52
   const progressPercentage = Math.min((totalProjects / PROJECT_GOAL) * 100, 100)
 
@@ -70,7 +72,6 @@ export default function DashboardPage() {
         <p className="text-muted-foreground">Here{"'"}s an overview of your projects and tasks.</p>
       </div>
 
-      {/* Actualizado a 4 columnas para acomodar la nueva tarjeta de progreso */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -85,7 +86,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Nueva Tarjeta: Meta de Proyectos */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Project Goal</CardTitle>
@@ -115,6 +115,7 @@ export default function DashboardPage() {
             <p className="text-xs text-muted-foreground">Tasks waiting to start</p>
           </CardContent>
         </Card>
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">In Progress</CardTitle>
@@ -203,6 +204,46 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* My Courses Section */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>My Courses</CardTitle>
+              <CardDescription>Courses you are enrolled in</CardDescription>
+            </div>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/courses">
+                View all <ArrowRight className="ml-1 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {myCourses.length === 0 ? (
+            <p className="text-sm text-muted-foreground">You are not enrolled in any courses yet.</p>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {myCourses.slice(0, 6).map((course) => (
+                <Link
+                  key={course.id}
+                  href={''}
+                  className="flex items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 cursor-default"
+                >
+                  <div className="mt-0.5 rounded-md bg-primary/10 p-1.5">
+                    <BookOpen className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-medium leading-tight">{course.name}</p>
+                    <p className="mt-0.5 text-sm text-muted-foreground line-clamp-2">{course.description}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

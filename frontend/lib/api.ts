@@ -181,6 +181,22 @@ export const coursesApi = {
     })
   },
 
+  getMyCourses: async (): Promise<Course[]> => {
+    return fetchWithAuth<Course[]>(`/courses/my`)
+  },
+
+  addUser: async (courseId: number, userId: number): Promise<void> => {
+    return fetchWithAuth<void>(`/courses/${courseId}/users/${userId}`, {
+      method: "POST",
+    })
+  },
+
+  removeUser: async (courseId: number, userId: number): Promise<void> => {
+    return fetchWithAuth<void>(`/courses/${courseId}/users/${userId}`, {
+      method: "DELETE",
+    })
+  },
+
 }
 
 // Tasks API

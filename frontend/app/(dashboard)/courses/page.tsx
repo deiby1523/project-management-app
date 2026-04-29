@@ -1,16 +1,14 @@
 "use client";
-
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { coursesApi } from "@/lib/api";
 import type { Course } from "@/lib/types";
 import { Empty } from "@/components/ui/empty";
-import { FolderOpen, Pencil, Trash2 } from "lucide-react";
+import { FolderOpen, Pencil, Trash2, LogIn, LogOut } from "lucide-react";
 import { CreateCourseDialog } from "@/components/courses/create-course-dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { EditCourseDialog } from "@/components/courses/edit-course-dialog";
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,17 +23,21 @@ import {
 export default function CoursesPage() {
   const { user } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<number>>(new Set());
+  const [togglingCourseId, setTogglingCourseId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
-  // Estado para controlar la confirmación de eliminación
   const [courseToDelete, setCourseToDelete] = useState<number | null>(null);
 
   const fetchCourses = useCallback(async () => {
     if (!user) return;
     setIsLoading(true);
     try {
-      const data = await coursesApi.getCourses();
-      setCourses(data);
+      const [allCourses, myCourses] = await Promise.all([
+        coursesApi.getCourses(),
+        coursesApi.getMyCourses(),
+      ]);
+      setCourses(allCourses);
+      setEnrolledCourseIds(new Set(myCourses.map((c) => c.id)));
     } catch (error) {
       console.error("Failed to fetch courses:", error);
     } finally {
@@ -43,9 +45,33 @@ export default function CoursesPage() {
     }
   }, [user]);
 
+  const handleToggleEnrollment = async (course: Course) => {
+    if (!user) return;
+    const isEnrolled = enrolledCourseIds.has(course.id);
+    setTogglingCourseId(course.id);
+    try {
+      if (isEnrolled) {
+        await coursesApi.removeUser(course.id, user.id);
+        setEnrolledCourseIds((prev) => {
+          const next = new Set(prev);
+          next.delete(course.id);
+          return next;
+        });
+        toast.success(`Left "${course.name}"`);
+      } else {
+        await coursesApi.addUser(course.id, user.id);
+        setEnrolledCourseIds((prev) => new Set(prev).add(course.id));
+        toast.success(`Joined "${course.name}"`);
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Action failed");
+    } finally {
+      setTogglingCourseId(null);
+    }
+  };
+
   const executeDelete = async () => {
     if (courseToDelete === null) return;
-
     try {
       await coursesApi.deleteCourse(courseToDelete);
       toast.success("Course deleted");
@@ -96,31 +122,77 @@ export default function CoursesPage() {
               <tr>
                 <th className="px-4 py-2 text-left">Name</th>
                 <th className="px-4 py-2 text-left">Description</th>
+                <th className="px-4 py-2 text-left">Status</th>
                 <th className="px-4 py-2 text-left">Options</th>
               </tr>
             </thead>
             <tbody>
-              {courses.map((course) => (
-                <tr key={course.id} className="border-t hover:bg-muted/50">
-                  <td className="px-4 py-2 font-medium">{course.name}</td>
-                  <td className="px-4 py-2">{course.description || "-"}</td>
-                  <td className="px-4 py-2 flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-mute-foreground hover:text-destructive"
-                      onClick={() => setCourseToDelete(course.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+              {courses.map((course) => {
+                const isEnrolled = enrolledCourseIds.has(course.id);
+                const isToggling = togglingCourseId === course.id;
+                return (
+                  <tr key={course.id} className="border-t hover:bg-muted/50">
+                    <td className="px-4 py-2 font-medium">{course.name}</td>
+                    <td className="px-4 py-2 text-muted-foreground">
+                      {course.description || "-"}
+                    </td>
 
-                    <EditCourseDialog
-                      course={course}
-                      onCourseUpdated={fetchCourses}
-                    />
-                  </td>
-                </tr>
-              ))}
+                    {/* Status label */}
+                    <td className="px-4 py-2">
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          isEnrolled
+                            ? "bg-green-100 text-green-700"
+                            : "bg-gray-100 text-gray-500"
+                        }`}
+                      >
+                        {isEnrolled ? "Registered" : "Not Registered"}
+                      </span>
+                    </td>
+
+                    {/* Options */}
+                    <td className="px-4 py-2">
+                      <div className="flex items-center gap-1">
+                        {/* Toggle enrollment button */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={isToggling}
+                          onClick={() => handleToggleEnrollment(course)}
+                          className={`h-8 gap-1.5 text-xs ${
+                            isEnrolled
+                              ? "text-destructive hover:text-destructive"
+                              : "text-green-600 hover:text-green-700"
+                          }`}
+                        >
+                          {isToggling ? (
+                            <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                          ) : isEnrolled ? (
+                            <LogOut className="h-3.5 w-3.5" />
+                          ) : (
+                            <LogIn className="h-3.5 w-3.5" />
+                          )}
+                          {isEnrolled ? "Leave" : "Join"}
+                        </Button>
+
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          onClick={() => setCourseToDelete(course.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+
+                        <EditCourseDialog
+                          course={course}
+                          onCourseUpdated={fetchCourses}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
