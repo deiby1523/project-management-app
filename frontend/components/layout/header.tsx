@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import { useRouter } from "next/navigation"
-import { useAuth } from "@/lib/auth-context"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,17 +11,21 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { LogOut, User } from "lucide-react"
+} from "@/components/ui/dropdown-menu";
+import { LogOut, User } from "lucide-react";
 
 export function Header() {
-  const { user, logout } = useAuth()
-  const router = useRouter()
+  const { user, logout } = useAuth();
+  const router = useRouter();
 
   const handleLogout = () => {
-    logout()
-    router.push("/login")
-  }
+    logout();
+    router.push("/login");
+  };
+
+  const handleProfile = () => {
+    router.push("/profile");
+  };
 
   const initials = user?.name
     ? user.name
@@ -30,13 +34,14 @@ export function Header() {
         .join("")
         .toUpperCase()
         .slice(0, 2)
-    : "U"
+    : "U";
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background px-6">
       <div className="flex items-center gap-4">
         <h1 className="text-lg font-semibold">Dashboard</h1>
       </div>
+
       <div className="flex items-center gap-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -48,19 +53,26 @@ export function Header() {
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
+
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">{user?.name}</p>
-                <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                <p className="text-xs leading-none text-muted-foreground">
+                  {user?.email}
+                </p>
               </div>
             </DropdownMenuLabel>
+
             <DropdownMenuSeparator />
-            <DropdownMenuItem disabled>
+
+            <DropdownMenuItem onClick={handleProfile}>
               <User className="mr-2 h-4 w-4" />
               Profile
             </DropdownMenuItem>
+
             <DropdownMenuSeparator />
+
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               Log out
@@ -69,5 +81,5 @@ export function Header() {
         </DropdownMenu>
       </div>
     </header>
-  )
+  );
 }

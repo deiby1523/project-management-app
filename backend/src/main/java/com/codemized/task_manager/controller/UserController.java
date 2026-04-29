@@ -1,8 +1,8 @@
 package com.codemized.task_manager.controller;
 
 
-import com.codemized.task_manager.dto.project.ProjectResponse;
 import com.codemized.task_manager.dto.user.UserResponse;
+import com.codemized.task_manager.model.User;
 import com.codemized.task_manager.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +29,14 @@ public class UserController {
     @GetMapping("/{userId}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long userId) {
         return ResponseEntity.ok(userService.getUserResponseById(userId));
+    }
+
+    @GetMapping("/current")
+    public ResponseEntity<UserResponse> getCurrentUser() {
+        User user = userService.getCurrentUser();
+        UserResponse userResponse = userService.getUserResponseById(user.getId());
+
+        return ResponseEntity.ok(userResponse);
     }
 
     @GetMapping()
