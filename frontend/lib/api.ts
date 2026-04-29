@@ -16,10 +16,10 @@ import type {
 } from "./types"
 
 // Docker
-// const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // Dev
-const API_BASE_URL = "http://localhost:8080/api";
+// const API_BASE_URL = "http://localhost:8080/api";
 
 // Token management
 export function getToken(): string | null {

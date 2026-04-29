@@ -22,7 +22,7 @@ COPY --from=builder /app ./
 EXPOSE 3000
 
 # Prod
-# CMD ["npm", "start"] 
+CMD ["npm", "start"]
 
 # Dev
-CMD ["npm", "run", "dev"]
+# CMD ["npm", "run", "dev"]
