@@ -2,6 +2,7 @@ package com.codemized.task_manager.controller;
 
 import com.codemized.task_manager.dto.project.CreateProjectRequest;
 import com.codemized.task_manager.dto.project.ProjectResponse;
+import com.codemized.task_manager.dto.project.ProjectStatsResponse;
 import com.codemized.task_manager.dto.user.UserResponse;
 import com.codemized.task_manager.model.User;
 import com.codemized.task_manager.service.UserService;
@@ -35,9 +36,10 @@ public class ProjectController {
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<ProjectResponse> updateProject(@PathVariable Long id, @Valid @RequestBody CreateProjectRequest request) {
+    public ResponseEntity<ProjectResponse> updateProject(@PathVariable Long id,
+            @Valid @RequestBody CreateProjectRequest request) {
         logger.info("Esta entrando a /update/{id}");
-        ProjectResponse updated = projectService.updateProject(id,request);
+        ProjectResponse updated = projectService.updateProject(id, request);
         return ResponseEntity.ok(updated);
     }
 
@@ -62,6 +64,11 @@ public class ProjectController {
         return ResponseEntity.ok(projects);
     }
 
+    @GetMapping("/stats")
+    public ResponseEntity<ProjectStatsResponse> stats() {
+        return ResponseEntity.ok(projectService.getProjectStatistics());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ProjectResponse> getProjectById(@PathVariable Long id) {
         return ResponseEntity.ok(projectService.getProjectById(id));
@@ -81,7 +88,6 @@ public class ProjectController {
 
         return ResponseEntity.ok(projectService.getProjectMembers(projectId));
     }
-
 
     // Eliminar miembro del proyecto
     @DeleteMapping("/{projectId}/members/{userId}")

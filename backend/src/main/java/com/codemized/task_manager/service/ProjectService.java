@@ -15,13 +15,17 @@ import com.codemized.task_manager.model.enums.ProjectRole;
 import com.codemized.task_manager.repository.CourseRepository;
 import com.codemized.task_manager.repository.ProjectMemberRepository;
 import com.codemized.task_manager.repository.ProjectRepository;
+import com.codemized.task_manager.dto.project.ProjectStatsResponse;
+
+import java.time.*;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -175,6 +179,44 @@ public class ProjectService {
         return mapToResponse(project);
     }
 
+    public ProjectStatsResponse getProjectStatistics() {
+
+        User user = userService.getCurrentUser();
+    
+        List<Project> projects =
+                projectRepository.findByCreatorIdOrderByCreatedAtAsc(user.getId());
+    
+        if (projects.isEmpty()) {
+            return ProjectStatsResponse.builder()
+                    .totalProjects(0)
+                    .averagePerWeek(0)
+                    .averagePerMonth(0)
+                    .averagePerSemester(0)
+                    .averagePerYear(0)
+                    .build();
+        }
+    
+        long total = projects.size();
+    
+        Instant firstCreatedAt = projects.get(0).getCreatedAt();
+    
+        LocalDate start = firstCreatedAt.atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate now = LocalDate.now();
+    
+        long weeks = Math.max(1, ChronoUnit.WEEKS.between(start, now));
+        long months = Math.max(1, ChronoUnit.MONTHS.between(start, now));
+        long years = Math.max(1, ChronoUnit.YEARS.between(start, now));
+        long semesters = Math.max(1, months / 6);
+    
+        return ProjectStatsResponse.builder()
+                .totalProjects(total)
+                .averagePerWeek(round((double) total / weeks))
+                .averagePerMonth(round((double) total / months))
+                .averagePerSemester(round((double) total / semesters))
+                .averagePerYear(round((double) total / years))
+                .build();
+    }
+
     // =========================
     // Métodos auxiliares
     // =========================
@@ -218,5 +260,9 @@ public class ProjectService {
                 .description(project.getDescription())
                 .creatorId(project.getCreator().getId())
                 .build();
+    }
+
+    private double round(double value) {
+        return Math.round(value * 100.0) / 100.0;
     }
 }

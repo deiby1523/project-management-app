@@ -12,6 +12,7 @@ import type {
   CreateCommentRequest,
   Course,
   CreateCourseRequest,
+  ProjectStats,
 } from "./types"
 
 // Docker
@@ -113,6 +114,10 @@ export const projectsApi = {
 
   getById: async (id: number): Promise<Project> => {
     return fetchWithAuth<Project>(`/projects/${id}`)
+  },
+
+  getProjectStats: async (): Promise<ProjectStats> => {
+    return fetchWithAuth<ProjectStats>(`/projects/stats`)
   },
 
   create: async (data: CreateProjectRequest): Promise<Project> => {

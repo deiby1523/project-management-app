@@ -29,6 +29,14 @@ export interface Project {
   creatorId: number
 }
 
+export interface ProjectStats {
+  totalProjects: number,
+  averagePerWeek: number,
+  averagePerMonth: number,
+  averagePerSemester: number,
+  averagePerYear: number
+}
+
 export interface Course {
   id: number
   name: string
